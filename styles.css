@@ -931,6 +931,49 @@ body {
     animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
+/* Login/Setup Styles */
+.login-hint {
+    margin-top: 32px;
+    padding: 20px;
+    background: rgba(99, 102, 241, 0.1);
+    border-radius: 12px;
+    border-left: 4px solid var(--primary);
+}
+
+.login-hint p {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin: 8px 0;
+    line-height: 1.6;
+}
+
+.login-footer {
+    text-align: center;
+    margin-top: 32px;
+    padding: 20px;
+}
+
+.back-link {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    border-radius: 10px;
+    background: var(--bg-card);
+    border: 2px solid var(--border);
+}
+
+.back-link:hover {
+    color: var(--primary);
+    border-color: var(--primary);
+    background: var(--bg-hover);
+    transform: translateY(-2px);
+}
+
 /* Selection */
 ::selection {
     background: var(--primary);
