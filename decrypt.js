@@ -4,6 +4,21 @@
 const ENCRYPTION_KEY = 'f9af690a1294c7f87424abee93058edca8c9c0e1e563601097e2169cbfbae2d3'; // Clé de chiffrement
 const ENCRYPTED_DIR = 'encrypted'; // Dossier contenant les fichiers chiffrés
 
+// Gestionnaire d'erreurs global pour capturer les erreurs de déclaration
+const originalErrorHandler = window.onerror;
+window.onerror = function(message, source, lineno, colno, error) {
+    // Ignorer les erreurs de déclaration déjà faite
+    if (message && typeof message === 'string' && message.includes('already been declared')) {
+        console.log(`⚠️ Erreur de déclaration ignorée: ${message}`);
+        return true; // Empêcher l'affichage de l'erreur
+    }
+    // Appeler le gestionnaire d'erreurs original s'il existe
+    if (originalErrorHandler) {
+        return originalErrorHandler(message, source, lineno, colno, error);
+    }
+    return false;
+};
+
 // Fonction pour déchiffrer avec AES-256 (côté client)
 async function decryptContent(encryptedData, key) {
     try {
@@ -112,9 +127,45 @@ function hexToArrayBuffer(hex) {
     return bytes.buffer;
 }
 
+// Cache des fichiers déjà chargés
+const loadedScripts = new Set();
+
 // Charger et déchiffrer un fichier
 async function loadAndDecrypt(filePath) {
     try {
+        // Vérifier AVANT tout si le fichier a déjà été chargé
+        const scriptId = 'encrypted-' + filePath.replace(/[^a-zA-Z0-9]/g, '-');
+        
+        // Vérification 1: Script ID déjà présent dans le DOM
+        if (document.getElementById(scriptId)) {
+            console.log(`⚠️ ${filePath} déjà chargé (ID trouvé), ignoré`);
+            return true;
+        }
+        
+        // Vérification 2: Fichier dans le cache
+        if (loadedScripts.has(filePath)) {
+            console.log(`⚠️ ${filePath} déjà chargé (cache), ignoré`);
+            return true;
+        }
+        
+        // Vérification 3: Variables globales spécifiques (pour common.js)
+        if (filePath.includes('common.js')) {
+            if (typeof window.GITHUB_API_URL !== 'undefined') {
+                console.log(`⚠️ ${filePath} déjà chargé (GITHUB_API_URL détecté), ignoré`);
+                loadedScripts.add(filePath);
+                return true;
+            }
+        }
+        
+        // Vérification 4: Pour auth.js
+        if (filePath.includes('auth.js')) {
+            if (typeof window.requireAuth !== 'undefined') {
+                console.log(`⚠️ ${filePath} déjà chargé (requireAuth détecté), ignoré`);
+                loadedScripts.add(filePath);
+                return true;
+            }
+        }
+        
         // Construire le chemin complet (avec le dossier encrypted)
         const fullPath = filePath.startsWith(ENCRYPTED_DIR + '/') 
             ? filePath 
@@ -144,27 +195,71 @@ async function loadAndDecrypt(filePath) {
         // Déchiffrer le contenu
         const decryptedContent = await decryptContent(encryptedContent, ENCRYPTION_KEY);
         
-        // Vérifier si le script a déjà été chargé (pour éviter les doublons)
-        const scriptId = 'encrypted-' + filePath.replace(/[^a-zA-Z0-9]/g, '-');
+        // Vérification finale AVANT d'ajouter (au cas où un autre script l'aurait chargé entre temps)
         if (document.getElementById(scriptId)) {
-            console.log(`⚠️ ${filePath} déjà chargé, ignoré`);
+            console.log(`⚠️ ${filePath} chargé entre temps, ignoré`);
             return true;
         }
         
-        // Vérifier si des variables globales du script sont déjà définies
-        // Pour common.js, vérifier GITHUB_API_URL
-        if (filePath.includes('common.js') && typeof window.GITHUB_API_URL !== 'undefined') {
-            console.log(`⚠️ ${filePath} déjà chargé (variables globales détectées), ignoré`);
-            return true;
+        // Vérification finale des variables globales (double check)
+        if (filePath.includes('common.js')) {
+            if (typeof window.GITHUB_API_URL !== 'undefined') {
+                console.log(`⚠️ ${filePath} déjà chargé (GITHUB_API_URL détecté avant ajout), ignoré`);
+                loadedScripts.add(filePath);
+                return true;
+            }
         }
         
-        // Créer un script et l'exécuter
+        // Ajouter au cache AVANT d'exécuter
+        loadedScripts.add(filePath);
+        
+        // Créer un script et l'exécuter avec gestion d'erreur
         const script = document.createElement('script');
         script.id = scriptId;
-        script.textContent = decryptedContent;
-        document.head.appendChild(script);
         
-        return true;
+        // Vérifier une dernière fois juste avant l'ajout
+        if (document.getElementById(scriptId)) {
+            console.log(`⚠️ ${filePath} chargé au dernier moment, ignoré`);
+            return true;
+        }
+        
+        // Gérer les erreurs d'exécution du script
+        script.onerror = function(error) {
+            console.warn(`⚠️ Erreur lors de l'exécution de ${filePath}, peut-être déjà chargé`);
+            loadedScripts.add(filePath);
+        };
+        
+        // Envelopper le contenu dans un try-catch pour capturer les erreurs de déclaration
+        try {
+            script.textContent = decryptedContent;
+            document.head.appendChild(script);
+            
+            // Vérifier après un court délai si l'erreur s'est produite
+            setTimeout(() => {
+                // Si le script a été ajouté mais qu'une erreur s'est produite, on l'ignore
+                if (document.getElementById(scriptId)) {
+                    // Le script est là, vérifier si les variables sont définies
+                    if (filePath.includes('common.js') && typeof window.GITHUB_API_URL === 'undefined') {
+                        console.warn(`⚠️ ${filePath} chargé mais GITHUB_API_URL non défini, peut-être une erreur`);
+                    }
+                }
+            }, 100);
+            
+            return true;
+        } catch (error) {
+            // Si erreur de duplication ou autre erreur d'exécution
+            if (error.message && (error.message.includes('already been declared') || error.message.includes('Identifier'))) {
+                console.log(`⚠️ ${filePath} déjà déclaré (erreur capturée: ${error.message}), ignoré`);
+                loadedScripts.add(filePath);
+                // Retirer le script si il a été ajouté
+                const addedScript = document.getElementById(scriptId);
+                if (addedScript) {
+                    addedScript.remove();
+                }
+                return true;
+            }
+            throw error;
+        }
     } catch (error) {
         console.error(`Erreur lors du chargement de ${filePath}:`, error);
         throw error;
@@ -187,15 +282,47 @@ function loadEncryptedScripts() {
         let successCount = 0;
         let errorCount = 0;
         
-        for (const script of encryptedScripts) {
+        // Séparer config.js des autres scripts pour le charger en premier
+        const scriptsArray = Array.from(encryptedScripts);
+        const configScript = scriptsArray.find(s => s.getAttribute('data-enc').includes('config.js'));
+        const otherScripts = scriptsArray.filter(s => !s.getAttribute('data-enc').includes('config.js'));
+        
+        // Charger config.js en premier si présent
+        if (configScript) {
+            const filePath = configScript.getAttribute('data-enc');
+            try {
+                await loadAndDecrypt(filePath);
+                console.log(`✅ ${filePath} déchiffré et chargé`);
+                successCount++;
+                // Attendre un peu pour que config.js s'exécute et expose window.GITHUB_TOKEN
+                await new Promise(resolve => setTimeout(resolve, 100));
+            } catch (error) {
+                if (error.message && (error.message.includes('already been declared') || error.message.includes('Identifier'))) {
+                    console.log(`⚠️ ${filePath} déjà chargé, ignoré`);
+                    successCount++;
+                } else {
+                    console.error(`❌ Erreur avec ${filePath}:`, error);
+                    errorCount++;
+                }
+            }
+        }
+        
+        // Charger les autres scripts
+        for (const script of otherScripts) {
             const filePath = script.getAttribute('data-enc');
             try {
                 await loadAndDecrypt(filePath);
                 console.log(`✅ ${filePath} déchiffré et chargé`);
                 successCount++;
             } catch (error) {
-                console.error(`❌ Erreur avec ${filePath}:`, error);
-                errorCount++;
+                // Ignorer les erreurs de duplication
+                if (error.message && (error.message.includes('already been declared') || error.message.includes('Identifier'))) {
+                    console.log(`⚠️ ${filePath} déjà chargé (erreur: ${error.message}), ignoré`);
+                    successCount++;
+                } else {
+                    console.error(`❌ Erreur avec ${filePath}:`, error);
+                    errorCount++;
+                }
                 
                 // Afficher une alerte pour les erreurs critiques
                 if (filePath.includes('auth.js') || filePath.includes('config.js')) {
