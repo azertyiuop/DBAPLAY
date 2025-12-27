@@ -34,6 +34,9 @@
                             <button type="button" onclick="togglePasswordVisibility()" class="btn-generate" style="padding: 12px 20px; background: var(--text-secondary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; white-space: nowrap;">
                                 👁️ Voir
                             </button>
+                            <button type="button" onclick="copyPassword()" class="btn-generate" id="copyBtn" style="padding: 12px 20px; background: #10b981; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; white-space: nowrap;">
+                                📋 Copier
+                            </button>
                             <button type="button" onclick="generatePassword()" class="btn-generate" style="padding: 12px 20px; background: var(--primary-color); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 500; white-space: nowrap;">
                                 🎲 Générer
                             </button>
@@ -60,8 +63,8 @@
         </div>
     </div>
 
-    <!-- Déchiffreur (doit être chargé en premier) -->
-    <script src="decrypt.js"></script>
+    <!-- Loader (doit être chargé en premier) -->
+    <script src="loader.js"></script>
     
     <!-- Fichiers chiffrés (seront déchiffrés automatiquement) -->
     <script data-enc="config.js.enc.js"></script>
@@ -82,6 +85,85 @@
                 passwordInput.type = 'password';
                 confirmInput.type = 'password';
                 toggleBtn.textContent = '👁️ Voir';
+            }
+        }
+        
+        // Fonction pour copier le mot de passe dans le presse-papiers
+        async function copyPassword() {
+            const passwordInput = document.getElementById('password');
+            const password = passwordInput.value;
+            const copyBtn = document.getElementById('copyBtn');
+            
+            if (!password) {
+                const messageDiv = document.getElementById('setupMessage');
+                messageDiv.textContent = '❌ Aucun mot de passe à copier';
+                messageDiv.className = 'error-message';
+                messageDiv.style.display = 'block';
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 3000);
+                return;
+            }
+            
+            try {
+                // Utiliser l'API Clipboard moderne si disponible
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    await navigator.clipboard.writeText(password);
+                    // Feedback visuel
+                    const originalText = copyBtn.textContent;
+                    copyBtn.textContent = '✅ Copié !';
+                    copyBtn.style.background = '#10b981';
+                    
+                    const messageDiv = document.getElementById('setupMessage');
+                    messageDiv.textContent = '✅ Mot de passe copié dans le presse-papiers !';
+                    messageDiv.className = 'success-message';
+                    messageDiv.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                        copyBtn.style.background = '#10b981';
+                        messageDiv.style.display = 'none';
+                    }, 2000);
+                } else {
+                    // Fallback pour les navigateurs plus anciens
+                    const textArea = document.createElement('textarea');
+                    textArea.value = password;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    
+                    try {
+                        document.execCommand('copy');
+                        const originalText = copyBtn.textContent;
+                        copyBtn.textContent = '✅ Copié !';
+                        copyBtn.style.background = '#10b981';
+                        
+                        const messageDiv = document.getElementById('setupMessage');
+                        messageDiv.textContent = '✅ Mot de passe copié dans le presse-papiers !';
+                        messageDiv.className = 'success-message';
+                        messageDiv.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            copyBtn.textContent = originalText;
+                            copyBtn.style.background = '#10b981';
+                            messageDiv.style.display = 'none';
+                        }, 2000);
+                    } catch (err) {
+                        throw new Error('Impossible de copier');
+                    } finally {
+                        document.body.removeChild(textArea);
+                    }
+                }
+            } catch (err) {
+                console.error('Erreur lors de la copie:', err);
+                const messageDiv = document.getElementById('setupMessage');
+                messageDiv.textContent = '❌ Erreur lors de la copie. Essayez de sélectionner le mot de passe manuellement.';
+                messageDiv.className = 'error-message';
+                messageDiv.style.display = 'block';
+                setTimeout(() => {
+                    messageDiv.style.display = 'none';
+                }, 4000);
             }
         }
         
