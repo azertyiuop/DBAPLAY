@@ -1,7 +1,7 @@
 // Déchiffreur de fichiers JavaScript chiffrés
 // Remplacez VOTRE_CLE_DE_CHIFFREMENT_ICI par la clé générée par encrypt.js
 
-const ENCRYPTION_KEY = 'f9af690a1294c7f87424abee93058edca8c9c0e1e563601097e2169cbfbae2d3'; // Clé de chiffrement
+const ENCRYPTION_KEY = 'a4f016b34e31f47975c80ce41e7d66ad994bbafe5732ae07ba71749e54690afb'; // Clé de chiffrement
 const ENCRYPTED_DIR = 'encrypted'; // Dossier contenant les fichiers chiffrés
 
 // Gestionnaire d'erreurs global pour capturer les erreurs de déclaration
