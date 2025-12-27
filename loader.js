@@ -8,10 +8,10 @@
     // Construite à partir de plusieurs parties pour éviter qu'elle soit visible en clair
     // Cette clé sera mise à jour automatiquement par encrypt.js
     const keyParts = [
-        'ed8a646633c3c98d',
-        '79c0ceda491ef433',
-        '1d1df8b7f8de7a1d',
-        '8167b99c07719462'
+        '128ab928cd8487b2',
+        '7a80e03e38eb53e6',
+        '3258be6af086a24c',
+        '54d3c934b3975355'
     ];
     const LOADER_KEY = keyParts.join('');
     const ENCRYPTED_DIR = 'encrypted';
@@ -56,6 +56,11 @@
                 throw new Error('Taille invalide');
             }
             
+            // Vérifier que crypto.subtle est disponible
+            if (!crypto || !crypto.subtle) {
+                throw new Error('crypto.subtle n\'est pas disponible. Utilisez HTTPS ou localhost.');
+            }
+            
             const cryptoKey = await crypto.subtle.importKey(
                 'raw',
                 keyBuffer,
@@ -64,16 +69,43 @@
                 ['decrypt']
             );
             
+            // Vérifier que la clé a été importée correctement
+            if (!cryptoKey) {
+                throw new Error('Échec de l\'importation de la clé de chiffrement');
+            }
+            
             const decryptedBuffer = await crypto.subtle.decrypt(
                 { name: 'AES-CBC', iv: ivBuffer },
                 cryptoKey,
                 encryptedBuffer
             );
             
+            // Vérifier que le déchiffrement a réussi
+            if (!decryptedBuffer || decryptedBuffer.byteLength === 0) {
+                throw new Error('Le déchiffrement a retourné un buffer vide');
+            }
+            
             const decryptedText = new TextDecoder().decode(decryptedBuffer);
             return decryptedText;
         } catch (error) {
             console.error('Erreur lors du déchiffrement de decrypt.js:', error);
+            console.error('Type d\'erreur:', error.name);
+            console.error('Message:', error.message);
+            console.error('Stack:', error.stack);
+            
+            // Informations de débogage supplémentaires
+            if (error.name === 'OperationError') {
+                console.error('💡 OperationError indique généralement que:');
+                console.error('   - La clé de chiffrement ne correspond pas aux données');
+                console.error('   - Les données chiffrées sont corrompues');
+                console.error('   - Le format des données ne correspond pas à AES-CBC');
+                console.error('   - Vérifiez que decrypt.js.enc.js a été chiffré avec la même clé que dans loader.js');
+            } else if (error.name === 'NotSupportedError') {
+                console.error('💡 NotSupportedError: crypto.subtle n\'est pas disponible');
+                console.error('   - Utilisez HTTPS ou servez depuis localhost');
+                console.error('   - Vérifiez que vous n\'êtes pas en mode HTTP non sécurisé');
+            }
+            
             throw error;
         }
     }
@@ -81,18 +113,40 @@
     // Charger et déchiffrer decrypt.js
     async function loadDecryptJs() {
         try {
-            const response = await fetch(ENCRYPTED_DIR + '/decrypt.js.enc.js');
+            const filePath = ENCRYPTED_DIR + '/decrypt.js.enc.js';
+            console.log('🔍 Chargement de', filePath);
+            
+            const response = await fetch(filePath);
             if (!response.ok) {
-                throw new Error(`Erreur HTTP: ${response.status}`);
+                throw new Error(`Erreur HTTP: ${response.status} ${response.statusText}`);
             }
             
             let encryptedContent = await response.text();
+            
+            // Vérifier que le contenu n'est pas vide
+            if (!encryptedContent || encryptedContent.trim().length === 0) {
+                throw new Error('Le fichier decrypt.js.enc.js est vide');
+            }
+            
             encryptedContent = encryptedContent.trim();
             if (encryptedContent.charCodeAt(0) === 0xFEFF) {
                 encryptedContent = encryptedContent.slice(1);
             }
             
+            // Vérifier le format (doit contenir un ':')
+            if (!encryptedContent.includes(':')) {
+                throw new Error('Format invalide: le fichier doit contenir "IV:données_chiffrées"');
+            }
+            
+            console.log('🔑 Déchiffrement avec la clé:', LOADER_KEY.substring(0, 16) + '...');
             const decryptedContent = await decryptDecryptJs(encryptedContent, LOADER_KEY);
+            
+            // Vérifier que le contenu déchiffré n'est pas vide
+            if (!decryptedContent || decryptedContent.trim().length === 0) {
+                throw new Error('Le contenu déchiffré est vide');
+            }
+            
+            console.log('✅ decrypt.js déchiffré avec succès');
             
             // Exécuter le decrypt.js déchiffré
             const script = document.createElement('script');
@@ -101,7 +155,20 @@
             
             return true;
         } catch (error) {
-            console.error('Erreur lors du chargement de decrypt.js:', error);
+            console.error('❌ Erreur lors du chargement de decrypt.js:', error);
+            console.error('Type d\'erreur:', error.name);
+            console.error('Message:', error.message);
+            
+            // Afficher un message d'erreur visible à l'utilisateur
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; background: #ef4444; color: white; padding: 20px; z-index: 10000; font-family: monospace;';
+            errorDiv.innerHTML = `
+                <strong>❌ Erreur de chargement</strong><br>
+                ${error.message}<br>
+                <small>Vérifiez la console pour plus de détails (F12)</small>
+            `;
+            document.body.appendChild(errorDiv);
+            
             throw error;
         }
     }
