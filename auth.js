@@ -137,18 +137,18 @@ function promptCredentials() {
 
 // Fonction pour vérifier si l'utilisateur est connecté
 function isAuthenticated() {
-    const session = sessionStorage.getItem('admin_session');
+    const session = localStorage.getItem('admin_session');
     return session === 'authenticated';
 }
 
 // Fonction pour définir la session
 function setAuthenticated() {
-    sessionStorage.setItem('admin_session', 'authenticated');
+    localStorage.setItem('admin_session', 'authenticated');
 }
 
 // Fonction pour déconnecter
 function logout() {
-    sessionStorage.removeItem('admin_session');
+    localStorage.removeItem('admin_session');
 }
 
 // Fonction pour protéger une page (demande les identifiants via popup)
