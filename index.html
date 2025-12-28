@@ -22,59 +22,117 @@
 </head>
 <body>
     <div class="app-container">
-        <header class="app-header">
-            <div class="header-wrapper">
-                <div>
-                    <h1 class="logo">ABD PLAYER</h1>
-                    <p class="tagline">Vos contenus favoris, gratuitement</p>
+        <!-- Hero Section -->
+        <header class="hero-section">
+            <div class="hero-background">
+                <div class="hero-gradient"></div>
+                <div class="hero-pattern"></div>
+            </div>
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="badge-dot"></span>
+                    <span>Streams en direct</span>
                 </div>
-                <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème">
+                <h1 class="hero-title">
+                    <span class="title-highlight">ABD</span> PLAYER
+                </h1>
+                <p class="hero-subtitle">Accédez à vos contenus favoris, gratuitement et sans limites</p>
+                <div class="hero-stats">
+                    <div class="hero-stat-item">
+                        <div class="hero-stat-value" id="heroStreamCount">0</div>
+                        <div class="hero-stat-label">Streams actifs</div>
+                    </div>
+                    <div class="hero-stat-divider"></div>
+                    <div class="hero-stat-item">
+                        <div class="hero-stat-value" id="heroTodayCount">0</div>
+                        <div class="hero-stat-label">Aujourd'hui</div>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-actions">
+                <button id="themeToggle" class="theme-toggle-modern" aria-label="Changer de thème">
                     <span class="theme-icon">🌙</span>
                 </button>
             </div>
         </header>
 
         <main class="main-content">
-            <section class="streams-section">
-                <div class="section-title-bar">
-                    <h2>📺 Streams Disponibles</h2>
-                    <div class="filter-tabs">
-                        <button class="tab-btn active" data-filter="all">Tous</button>
-                        <button class="tab-btn" data-filter="today">Aujourd'hui</button>
-                        <button class="tab-btn" data-filter="upcoming">À venir</button>
-                        <button class="tab-btn" data-filter="past">Passés</button>
+            <!-- Filters Section -->
+            <section class="filters-section">
+                <div class="filters-container">
+                    <div class="filters-label">
+                        <span class="filters-icon">🎯</span>
+                        <span>Filtrer par</span>
                     </div>
-                </div>
-
-                <div id="streamsGrid" class="streams-grid">
-                    <!-- Streams chargés dynamiquement -->
-                </div>
-
-                <div id="emptyState" class="empty-state">
-                    <div class="empty-icon">📺</div>
-                    <h3>Aucun stream disponible</h3>
-                    <p>Les streams ajoutés apparaîtront ici</p>
+                    <div class="filter-tabs-modern">
+                        <button class="filter-tab active" data-filter="all">
+                            <span class="tab-icon">📺</span>
+                            <span>Tous</span>
+                        </button>
+                        <button class="filter-tab" data-filter="today">
+                            <span class="tab-icon">📅</span>
+                            <span>Aujourd'hui</span>
+                        </button>
+                        <button class="filter-tab" data-filter="upcoming">
+                            <span class="tab-icon">⏰</span>
+                            <span>À venir</span>
+                        </button>
+                        <button class="filter-tab" data-filter="past">
+                            <span class="tab-icon">📜</span>
+                            <span>Passés</span>
+                        </button>
+                    </div>
                 </div>
             </section>
 
-            <section class="social-section">
-                <h3>Rejoignez-nous</h3>
-                <div class="social-buttons">
-                    <a href="" id="discordLink" target="_blank" rel="noopener noreferrer" class="social-button discord" style="display: none;">
-                        <span class="social-icon">💬</span>
-                        <span>Rejoindre Discord</span>
-                    </a>
-                    <a href="" id="xLink" target="_blank" rel="noopener noreferrer" class="social-button twitter" style="display: none;">
-                        <span class="social-icon">𝕏</span>
-                        <span>Suivre sur X</span>
-                    </a>
+            <!-- Streams Section -->
+            <section class="streams-section-modern">
+                <div id="streamsGrid" class="streams-grid-modern">
+                    <!-- Streams chargés dynamiquement -->
+                </div>
+
+                <div id="emptyState" class="empty-state-modern">
+                    <div class="empty-animation">
+                        <div class="empty-icon-modern">📺</div>
+                        <div class="empty-pulse"></div>
+                    </div>
+                    <h3 class="empty-title">Aucun stream disponible</h3>
+                    <p class="empty-description">Les streams ajoutés apparaîtront ici</p>
+                </div>
+            </section>
+
+            <!-- Social Section -->
+            <section class="social-section-modern">
+                <div class="social-container">
+                    <div class="social-header">
+                        <h3 class="social-title">Rejoignez notre communauté</h3>
+                        <p class="social-subtitle">Restez connecté et ne manquez aucun stream</p>
+                    </div>
+                    <div class="social-buttons-modern">
+                        <a href="" id="discordLink" target="_blank" rel="noopener noreferrer" class="social-btn-modern discord-modern" style="display: none;">
+                            <div class="social-btn-icon">💬</div>
+                            <div class="social-btn-content">
+                                <div class="social-btn-title">Discord</div>
+                                <div class="social-btn-subtitle">Rejoindre le serveur</div>
+                            </div>
+                            <div class="social-btn-arrow">→</div>
+                        </a>
+                        <a href="" id="xLink" target="_blank" rel="noopener noreferrer" class="social-btn-modern twitter-modern" style="display: none;">
+                            <div class="social-btn-icon">𝕏</div>
+                            <div class="social-btn-content">
+                                <div class="social-btn-title">Twitter / X</div>
+                                <div class="social-btn-subtitle">Suivre nos actualités</div>
+                            </div>
+                            <div class="social-btn-arrow">→</div>
+                        </a>
+                    </div>
                 </div>
             </section>
         </main>
 
         <footer class="app-footer">
             <div class="footer-content">
-                <p>&copy; 2025 ABD. Tous droits réservés.</p>
+                <p>&copy; 2024 ABD PLAYER. Tous droits réservés.</p>
                 <div class="footer-links">
                     <a href="legal.html">Mentions Légales</a>
                     <span>•</span>
