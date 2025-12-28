@@ -9,13 +9,28 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script>
+        // Initialiser le thème immédiatement pour éviter le flash
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body>
     <div class="app-container">
         <header class="app-header">
             <div class="header-wrapper">
-                <h1 class="logo">ABD PLAYER</h1>
-                <p class="tagline">Vos contenus favoris, gratuitement</p>
+                <div>
+                    <h1 class="logo">ABD PLAYER</h1>
+                    <p class="tagline">Vos contenus favoris, gratuitement</p>
+                </div>
+                <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème">
+                    <span class="theme-icon">🌙</span>
+                </button>
             </div>
         </header>
 
@@ -56,9 +71,21 @@
                 </div>
             </section>
         </main>
+
+        <footer class="app-footer">
+            <div class="footer-content">
+                <p>&copy; 2025 ABD. Tous droits réservés.</p>
+                <div class="footer-links">
+                    <a href="legal.html">Mentions Légales</a>
+                    <span>•</span>
+                    <a href="legal.html#dmca">DMCA</a>
+                </div>
+            </div>
+        </footer>
     </div>
 
     <script src="loader.js"></script>
+    <script src="firebase-storage.js"></script>
     <script data-enc="config.js.enc.js"></script>
     <script data-enc="protection.js.enc.js"></script>
     <script data-enc="common.js.enc.js"></script>
