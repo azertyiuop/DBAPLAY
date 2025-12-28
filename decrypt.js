@@ -371,4 +371,3 @@ if (document.readyState === 'loading') {
     // DOM déjà chargé
     loadEncryptedScripts();
 }
-
