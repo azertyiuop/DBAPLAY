@@ -20,10 +20,10 @@ const ENCRYPTED_DIR = 'encrypted'; // Dossier contenant les fichiers chiffrés
 const ENCRYPTION_KEY = window._ENCRYPTION_KEY || (function() {
     // Fallback si la clé n'a pas été définie
     const parts = [
-        String.fromCharCode(48, 102, 57, 97, 97, 52, 55, 101, 57, 102, 57, 98, 101, 101, 50, 53),
-        String.fromCharCode(102, 97, 49, 100, 56, 101, 54, 55, 57, 57, 49, 53, 56, 52, 49, 97),
-        String.fromCharCode(101, 54, 52, 57, 53, 50, 49, 53, 53, 51, 48, 50, 49, 101, 57, 100),
-        String.fromCharCode(56, 99, 98, 97, 55, 54, 56, 57, 51, 52, 101, 102, 53, 99, 52, 50)
+        String.fromCharCode(51, 51, 54, 53, 50, 52, 97, 50, 48, 48, 100, 100, 53, 55, 48, 50),
+        String.fromCharCode(55, 55, 102, 50, 52, 56, 56, 49, 99, 57, 100, 100, 52, 55, 102, 100),
+        String.fromCharCode(98, 54, 50, 51, 102, 99, 48, 54, 49, 97, 53, 54, 55, 49, 100, 51),
+        String.fromCharCode(102, 99, 99, 49, 100, 97, 98, 56, 55, 101, 48, 49, 99, 56, 100, 99)
     ];
     return parts.join('');
 })();
