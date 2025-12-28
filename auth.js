@@ -163,9 +163,13 @@ async function requireAuth() {
     
     if (isAuthenticated()) {
         // Afficher le contenu si déjà authentifié
-        const container = document.querySelector('.container');
+        const container = document.querySelector('.app-container');
+        const loadingMsg = document.getElementById('loadingMessage');
         if (container) {
             container.style.display = 'block';
+        }
+        if (loadingMsg) {
+            loadingMsg.style.display = 'none';
         }
         // Masquer le message de chargement
         if (typeof window.hideLoadingMessage === 'function') {
@@ -175,7 +179,7 @@ async function requireAuth() {
     }
     
     // Masquer le contenu pendant l'authentification
-    const container = document.querySelector('.container');
+    const container = document.querySelector('.app-container');
     if (container) {
         container.style.display = 'none';
     }
@@ -197,8 +201,13 @@ async function requireAuth() {
         if (isValid) {
             setAuthenticated();
             // Afficher le contenu après authentification réussie
-            if (container) {
-                container.style.display = 'block';
+            const appContainer = document.querySelector('.app-container');
+            const loadingMsg = document.getElementById('loadingMessage');
+            if (appContainer) {
+                appContainer.style.display = 'block';
+            }
+            if (loadingMsg) {
+                loadingMsg.style.display = 'none';
             }
             // Masquer le message de chargement
             if (typeof window.hideLoadingMessage === 'function') {
