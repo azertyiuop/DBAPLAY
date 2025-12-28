@@ -12,6 +12,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        // Initialiser le thème immédiatement pour éviter le flash
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body>
     <div class="app-container">
@@ -21,6 +28,9 @@
                     <h1 class="logo">⚙️ Configuration Admin</h1>
                     <p class="tagline">Définissez vos identifiants d'administration</p>
                 </div>
+                <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème">
+                    <span class="theme-icon">🌙</span>
+                </button>
             </div>
         </header>
 
@@ -241,7 +251,7 @@
                 const setupForm = document.getElementById('setupForm');
                 const messageDiv = document.getElementById('setupMessage');
                 
-                setupForm.addEventListener('submit', (e) => {
+                setupForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     
                     const username = document.getElementById('username').value.trim();
@@ -263,13 +273,29 @@
                         return;
                     }
                     
-                    if (setupCredentials(username, password)) {
-                        showMessage('✅ Identifiants créés avec succès ! Redirection...', 'success');
-                        setTimeout(() => {
-                            window.location.href = 'admin.html';
-                        }, 1500);
-                    } else {
-                        showMessage('Erreur lors de la création des identifiants', 'error');
+                    // Désactiver le bouton pendant la sauvegarde
+                    const submitBtn = setupForm.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '💾 Sauvegarde...';
+                    
+                    try {
+                        const success = await setupCredentials(username, password);
+                        if (success) {
+                            showMessage('✅ Identifiants créés avec succès ! Redirection...', 'success');
+                            setTimeout(() => {
+                                window.location.href = 'admin.html';
+                            }, 1500);
+                        } else {
+                            showMessage('Erreur lors de la création des identifiants', 'error');
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalBtnText;
+                        }
+                    } catch (error) {
+                        console.error('Erreur:', error);
+                        showMessage('Erreur lors de la création des identifiants: ' + error.message, 'error');
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
                     }
                 });
                 
