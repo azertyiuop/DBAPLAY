@@ -4,11 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
-    <title>PANEL D'ADMINISTRATION</title>
+    <title>Admin - ABD PLAYER</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
         // Initialiser le thème immédiatement pour éviter le flash
         (function() {
@@ -62,6 +63,8 @@
         <main class="admin-content">
             <section class="admin-panel stats-panel">
                 <h2>📊 Statistiques en Temps Réel</h2>
+                
+                <!-- Cartes de statistiques principales -->
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon">👥</div>
@@ -95,7 +98,62 @@
                             <div class="stat-description">Depuis le début</div>
                         </div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">⏱️</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Clics cette Heure</div>
+                            <div class="stat-value" id="thisHourClicks">0</div>
+                            <div class="stat-description">Dernière heure</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-content">
+                            <div class="stat-label">Taux de Conversion</div>
+                            <div class="stat-value" id="conversionRate">0%</div>
+                            <div class="stat-description">Visites → Clics</div>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Graphiques -->
+                <div class="charts-container">
+                    <div class="chart-wrapper">
+                        <h3>📈 Évolution des Visites (24h)</h3>
+                        <canvas id="visitsChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-wrapper">
+                        <h3>🖱️ Évolution des Clics (24h)</h3>
+                        <canvas id="clicksChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-wrapper">
+                        <h3>🏆 Top 10 Streams les Plus Cliqués</h3>
+                        <canvas id="topStreamsChart"></canvas>
+                    </div>
+                    
+                    <div class="chart-wrapper">
+                        <h3>📅 Visiteurs par Jour (7 derniers jours)</h3>
+                        <canvas id="dailyVisitsChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Statistiques détaillées -->
+                <div class="detailed-stats">
+                    <h3>📋 Statistiques Détaillées</h3>
+                    <div class="detailed-stats-grid">
+                        <div class="detailed-stat-card">
+                            <h4>⏰ Clics par Heure (Aujourd'hui)</h4>
+                            <div id="clicksByHour" class="hourly-stats"></div>
+                        </div>
+                        <div class="detailed-stat-card">
+                            <h4>📊 Top 5 Streams</h4>
+                            <div id="topStreamsList" class="top-streams-list"></div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="stats-update-info">
                     <span class="update-indicator" id="updateIndicator">🟢</span>
                     <span id="lastUpdate">Mise à jour en cours...</span>
