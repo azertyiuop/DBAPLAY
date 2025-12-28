@@ -10,6 +10,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
+        // Initialiser le thème immédiatement pour éviter le flash
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+    <script>
         function hideLoadingMessage() {
             const loadingMsg = document.getElementById('loadingMessage');
             if (loadingMsg) loadingMsg.style.display = 'none';
@@ -43,6 +50,9 @@
             <div class="header-wrapper">
                 <h1 class="logo">⚙️ Administration</h1>
                 <div class="header-actions">
+                    <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème">
+                        <span class="theme-icon">🌙</span>
+                    </button>
                     <a href="index.html" class="btn btn-outline">🏠 Accueil</a>
                     <button onclick="logout()" class="btn btn-danger">🚪 Déconnexion</button>
                 </div>
@@ -147,6 +157,76 @@
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Modal d'édition -->
+    <div id="editModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>✏️ Modifier le Stream</h2>
+                <button onclick="closeEditModal()" class="modal-close">&times;</button>
+            </div>
+            <form id="editStreamForm" class="stream-form">
+                <div class="form-row">
+                    <div class="form-group full-width">
+                        <label>🖼️ Image du Stream</label>
+                        <div class="image-upload-box">
+                            <input type="file" id="editStreamImage" accept="image/*" class="image-input-hidden">
+                            <div class="image-preview-wrapper edit-image-preview-wrapper">
+                                <img id="editImagePreview" src="" alt="Preview" style="display: none;">
+                                <div class="image-placeholder" id="editImagePlaceholder">
+                                    <span class="upload-icon">📷</span>
+                                    <span class="upload-text">Cliquez pour changer l'image</span>
+                                    <span class="upload-hint">JPG, PNG (max 5MB)</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-remove" id="editRemoveImageBtn" style="display: none;">❌ Supprimer</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editStreamName">📺 Nom du Stream</label>
+                        <input type="text" id="editStreamName" placeholder="Ex: PSG vs Marseille" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStreamLink">🔗 Lien Telegram</label>
+                        <input type="url" id="editStreamLink" placeholder="https://t.me/..." required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editStreamDate">📅 Date</label>
+                        <input type="date" id="editStreamDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStreamTime">🕐 Heure</label>
+                        <input type="time" id="editStreamTime" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editStreamCompetition">🏆 Compétition</label>
+                        <input type="text" id="editStreamCompetition" placeholder="Ligue 1, Champions League..." required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editStreamStatus">📊 Statut</label>
+                        <select id="editStreamStatus" required>
+                            <option value="active">🟢 Actif</option>
+                            <option value="dead">🔴 Mort</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" onclick="closeEditModal()" class="btn btn-outline">❌ Annuler</button>
+                    <button type="submit" class="btn btn-primary">✅ Sauvegarder</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <script src="loader.js"></script>
