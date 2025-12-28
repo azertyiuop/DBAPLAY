@@ -1,12 +1,6 @@
-// Loader minimal pour déchiffrer decrypt.js
-// La clé est construite dynamiquement pour l'obscurcir
-
 (function() {
     'use strict';
     
-    // Clé de base pour déchiffrer decrypt.js (obscurcie)
-    // Construite à partir de plusieurs parties pour éviter qu'elle soit visible en clair
-    // Cette clé sera mise à jour automatiquement par encrypt.js
     const keyParts = [
         '3f5f76ce6efc5479',
         'fb15cd089a059204',
@@ -16,7 +10,6 @@
     const LOADER_KEY = keyParts.join('');
     const ENCRYPTED_DIR = 'encrypted';
     
-    // Fonction pour convertir hex en ArrayBuffer
     function hexToArrayBuffer(hex) {
         if (hex.length % 2 !== 0) {
             throw new Error('Longueur hex invalide');
@@ -28,7 +21,6 @@
         return bytes.buffer;
     }
     
-    // Fonction pour déchiffrer decrypt.js
     async function decryptDecryptJs(encryptedData, key) {
         try {
             encryptedData = encryptedData.trim().replace(/\s+/g, '');
@@ -56,7 +48,6 @@
                 throw new Error('Taille invalide');
             }
             
-            // Vérifier que crypto.subtle est disponible
             if (!crypto || !crypto.subtle) {
                 throw new Error('crypto.subtle n\'est pas disponible. Utilisez HTTPS ou localhost.');
             }
@@ -69,7 +60,6 @@
                 ['decrypt']
             );
             
-            // Vérifier que la clé a été importée correctement
             if (!cryptoKey) {
                 throw new Error('Échec de l\'importation de la clé de chiffrement');
             }
@@ -80,7 +70,6 @@
                 encryptedBuffer
             );
             
-            // Vérifier que le déchiffrement a réussi
             if (!decryptedBuffer || decryptedBuffer.byteLength === 0) {
                 throw new Error('Le déchiffrement a retourné un buffer vide');
             }
@@ -93,7 +82,6 @@
             console.error('Message:', error.message);
             console.error('Stack:', error.stack);
             
-            // Informations de débogage supplémentaires
             if (error.name === 'OperationError') {
                 console.error('💡 OperationError indique généralement que:');
                 console.error('   - La clé de chiffrement ne correspond pas aux données');
@@ -110,7 +98,6 @@
         }
     }
     
-    // Charger et déchiffrer decrypt.js
     async function loadDecryptJs() {
         try {
             const filePath = ENCRYPTED_DIR + '/decrypt.js.enc.js';
@@ -123,7 +110,6 @@
             
             let encryptedContent = await response.text();
             
-            // Vérifier que le contenu n'est pas vide
             if (!encryptedContent || encryptedContent.trim().length === 0) {
                 throw new Error('Le fichier decrypt.js.enc.js est vide');
             }
@@ -133,7 +119,6 @@
                 encryptedContent = encryptedContent.slice(1);
             }
             
-            // Vérifier le format (doit contenir un ':')
             if (!encryptedContent.includes(':')) {
                 throw new Error('Format invalide: le fichier doit contenir "IV:données_chiffrées"');
             }
@@ -141,14 +126,12 @@
             console.log('🔑 Déchiffrement avec la clé:', LOADER_KEY.substring(0, 16) + '...');
             const decryptedContent = await decryptDecryptJs(encryptedContent, LOADER_KEY);
             
-            // Vérifier que le contenu déchiffré n'est pas vide
             if (!decryptedContent || decryptedContent.trim().length === 0) {
                 throw new Error('Le contenu déchiffré est vide');
             }
             
             console.log('✅ decrypt.js déchiffré avec succès');
             
-            // Exécuter le decrypt.js déchiffré
             const script = document.createElement('script');
             script.textContent = decryptedContent;
             document.head.appendChild(script);
@@ -159,7 +142,6 @@
             console.error('Type d\'erreur:', error.name);
             console.error('Message:', error.message);
             
-            // Afficher un message d'erreur visible à l'utilisateur
             const errorDiv = document.createElement('div');
             errorDiv.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; background: #ef4444; color: white; padding: 20px; z-index: 10000; font-family: monospace;';
             errorDiv.innerHTML = `
@@ -173,7 +155,6 @@
         }
     }
     
-    // Charger decrypt.js dès que possible
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', loadDecryptJs);
     } else {
