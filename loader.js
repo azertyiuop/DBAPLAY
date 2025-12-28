@@ -8,10 +8,10 @@
     // Construite à partir de plusieurs parties pour éviter qu'elle soit visible en clair
     // Cette clé sera mise à jour automatiquement par encrypt.js
     const keyParts = [
-        '336524a200dd5702',
-        '77f24881c9dd47fd',
-        'b623fc061a5671d3',
-        'fcc1dab87e01c8dc'
+        '05752ec278325a99',
+        'd20b48072f5f5f28',
+        'd5819cc9bba6d281',
+        '42c53ac19c8a0574'
     ];
     const LOADER_KEY = keyParts.join('');
     const ENCRYPTED_DIR = 'encrypted';
