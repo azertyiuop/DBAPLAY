@@ -62,22 +62,83 @@
     </div>
     
     <div class="app-container" style="display: none;">
-        <header class="admin-header">
-            <div class="header-wrapper">
-                <h1 class="logo">⚙️ Administration</h1>
-                <div class="header-actions">
-                    <button id="themeToggle" class="theme-toggle" aria-label="Changer de thème">
-                        <span class="theme-icon">🌙</span>
-                    </button>
-                    <a href="index.html" class="btn btn-outline">🏠 Accueil</a>
-                    <button onclick="logout()" class="btn btn-danger">🚪 Déconnexion</button>
+        <!-- Mobile Menu Toggle -->
+        <button class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Menu">
+            <span>☰</span>
+        </button>
+        
+        <!-- Admin Sidebar -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-header">
+                <div class="sidebar-logo">
+                    <div class="logo-icon">⚙️</div>
+                    <div class="logo-text">
+                        <div class="logo-title">ABD Admin</div>
+                        <div class="logo-subtitle">Panneau de contrôle</div>
+                    </div>
                 </div>
             </div>
-        </header>
+            <nav class="sidebar-nav">
+                <a href="#stats" class="nav-item active" data-section="stats">
+                    <span class="nav-icon">📊</span>
+                    <span class="nav-label">Statistiques</span>
+                </a>
+                <a href="#messages" class="nav-item" data-section="messages">
+                    <span class="nav-icon">💬</span>
+                    <span class="nav-label">Messages</span>
+                </a>
+                <a href="#streams" class="nav-item" data-section="streams">
+                    <span class="nav-icon">📺</span>
+                    <span class="nav-label">Streams</span>
+                </a>
+                <a href="#social" class="nav-item" data-section="social">
+                    <span class="nav-icon">🌐</span>
+                    <span class="nav-label">Réseaux sociaux</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="themeToggle" class="sidebar-theme-toggle" aria-label="Changer de thème">
+                    <span class="theme-icon">🌙</span>
+                    <span>Thème</span>
+                </button>
+                <a href="index.html" class="sidebar-link">
+                    <span class="nav-icon">🏠</span>
+                    <span>Accueil</span>
+                </a>
+                <button onclick="logout()" class="sidebar-logout">
+                    <span class="nav-icon">🚪</span>
+                    <span>Déconnexion</span>
+                </button>
+            </div>
+        </aside>
 
-        <main class="admin-content">
-            <section class="admin-panel stats-panel">
-                <h2>📊 Statistiques en Temps Réel</h2>
+        <!-- Admin Main Content -->
+        <div class="admin-main-wrapper">
+            <header class="admin-header-modern">
+                <div class="admin-header-content">
+                    <div class="admin-breadcrumb">
+                        <span class="breadcrumb-item active" id="currentSection">Statistiques</span>
+                    </div>
+                    <div class="admin-header-actions">
+                        <div class="admin-notification-badge" id="notificationBadge" style="display: none;">
+                            <span class="badge-count">0</span>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <main class="admin-content-modern">
+                <!-- Section Statistiques -->
+                <section id="stats-section" class="admin-section active">
+                    <div class="section-header-modern">
+                        <div class="section-header-content">
+                            <h2 class="section-title-modern">
+                                <span class="section-icon">📊</span>
+                                Statistiques en Temps Réel
+                            </h2>
+                            <p class="section-subtitle">Surveillez l'activité de votre site en direct</p>
+                        </div>
+                    </div>
                 
                 <!-- Cartes de statistiques principales -->
                 <div class="stats-grid">
@@ -175,8 +236,17 @@
                 </div>
             </section>
 
-            <section class="admin-panel">
-                <h2>➕ Ajouter un Stream</h2>
+                <!-- Section Streams -->
+                <section id="streams-section" class="admin-section">
+                    <div class="section-header-modern">
+                        <div class="section-header-content">
+                            <h2 class="section-title-modern">
+                                <span class="section-icon">➕</span>
+                                Ajouter un Stream
+                            </h2>
+                            <p class="section-subtitle">Créez et gérez vos streams</p>
+                        </div>
+                    </div>
                 <form id="streamForm" class="stream-form">
                     <div class="form-row">
                         <div class="form-group full-width">
@@ -239,8 +309,17 @@
                 </form>
             </section>
 
-            <section class="admin-panel">
-                <h2>📢 Messages aux Visiteurs</h2>
+                <!-- Section Messages -->
+                <section id="messages-section" class="admin-section">
+                    <div class="section-header-modern">
+                        <div class="section-header-content">
+                            <h2 class="section-title-modern">
+                                <span class="section-icon">💬</span>
+                                Messages aux Visiteurs
+                            </h2>
+                            <p class="section-subtitle">Communiquez avec vos visiteurs en temps réel</p>
+                        </div>
+                    </div>
                 <form id="messageForm" class="stream-form">
                     <div class="form-row">
                         <div class="form-group full-width">
@@ -270,8 +349,17 @@
                 <div id="messagesList" class="messages-list" style="margin-top: 24px;"></div>
             </section>
 
-            <section class="admin-panel">
-                <h2>🌐 Liens Sociaux</h2>
+                <!-- Section Réseaux Sociaux -->
+                <section id="social-section" class="admin-section">
+                    <div class="section-header-modern">
+                        <div class="section-header-content">
+                            <h2 class="section-title-modern">
+                                <span class="section-icon">🌐</span>
+                                Liens Sociaux
+                            </h2>
+                            <p class="section-subtitle">Configurez vos liens de réseaux sociaux</p>
+                        </div>
+                    </div>
                 <form id="socialForm" class="stream-form">
                     <div class="form-row">
                         <div class="form-group">
@@ -287,9 +375,14 @@
                 </form>
             </section>
 
-            <section class="admin-panel">
-                <div class="section-title-bar">
-                    <h2>📋 Streams Existants</h2>
+                    <div class="section-header-modern" style="margin-top: 32px;">
+                        <div class="section-header-content">
+                            <h2 class="section-title-modern">
+                                <span class="section-icon">📋</span>
+                                Streams Existants
+                            </h2>
+                            <p class="section-subtitle">Gérez vos streams existants</p>
+                        </div>
                     <div class="filter-tabs">
                         <button class="tab-btn active" data-filter="all">Tous</button>
                         <button class="tab-btn" data-filter="active">Actifs</button>
@@ -300,9 +393,10 @@
                 <div id="adminEmptyState" class="empty-state">
                     <div class="empty-icon">📋</div>
                     <h3>Aucun stream</h3>
-                </div>
-            </section>
-        </main>
+                    </div>
+                </section>
+            </main>
+        </div>
 
         <footer class="app-footer">
             <div class="footer-content">
