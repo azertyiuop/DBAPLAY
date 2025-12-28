@@ -31,19 +31,25 @@
 }
 
 [data-theme="light"] {
+    --primary: #3b82f6;
+    --primary-dark: #2563eb;
+    --primary-light: #60a5fa;
+    --primary-glow: rgba(59, 130, 246, 0.3);
     --bg-dark: #f8fafc;
     --bg-darker: #f1f5f9;
     --bg-card: #ffffff;
     --bg-card-hover: #f8fafc;
     --bg-hover: #f1f5f9;
-    --text-primary: #0f172a;
+    --text-primary: #1e293b;
     --text-secondary: #475569;
-    --text-muted: #94a3b8;
+    --text-muted: #64748b;
     --border: #e2e8f0;
     --border-light: #cbd5e1;
-    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.1);
-    --shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.2);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.05);
+    --shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.15);
+    --shadow-glow: 0 0 20px var(--primary-glow);
+    --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     --gradient-bg: linear-gradient(180deg, var(--bg-dark) 0%, var(--bg-darker) 100%);
 }
 
