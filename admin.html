@@ -8,8 +8,12 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
@@ -19,6 +23,14 @@
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
+        
+        // Filtrer les erreurs 404 Firebase (longue polling - normales et bénignes)
+        window.addEventListener('error', function(e) {
+            if (e.target && e.target.src && e.target.src.includes('.lp?') && e.target.src.includes('firebase')) {
+                e.preventDefault();
+                return false;
+            }
+        }, true);
     </script>
     <script>
         function hideLoadingMessage() {
@@ -45,7 +57,7 @@
     </script>
 </head>
 <body>
-    <div id="loadingMessage" style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #0a0a0a; color: #fff; font-family: 'Poppins', sans-serif; flex-direction: column; gap: 20px;">
+    <div id="loadingMessage" style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #0a0a0a; color: #fff; font-family: 'Inter', sans-serif; flex-direction: column; gap: 20px;">
         <div style="font-size: 24px;">🔐 Vérification...</div>
     </div>
     
@@ -61,411 +73,494 @@
         </div>
     </div>
     
-    <div class="app-container" style="display: none;">
+    <div class="admin-wrapper" style="display: none;">
         <!-- Mobile Menu Toggle -->
-        <button class="mobile-menu-toggle" onclick="toggleSidebar()" aria-label="Menu">
+        <button class="admin-mobile-toggle" onclick="toggleSidebar()" aria-label="Menu">
             <span>☰</span>
         </button>
         
         <!-- Admin Sidebar -->
-        <aside class="admin-sidebar" id="adminSidebar">
-            <div class="sidebar-header">
-                <div class="sidebar-logo">
-                    <div class="logo-icon">⚙️</div>
-                    <div class="logo-text">
-                        <div class="logo-title">ABD Admin</div>
-                        <div class="logo-subtitle">Panneau de contrôle</div>
+        <aside class="admin-sidebar-new" id="adminSidebar">
+            <div class="sidebar-header-new">
+                <div class="sidebar-logo-new">
+                    <div class="logo-icon-new">⚙️</div>
+                    <div class="logo-text-new">
+                        <div class="logo-title-new">ABD Admin</div>
+                        <div class="logo-subtitle-new">Panneau de contrôle</div>
                     </div>
                 </div>
             </div>
-            <nav class="sidebar-nav">
-                <a href="#stats" class="nav-item active" data-section="stats">
-                    <span class="nav-icon">📊</span>
-                    <span class="nav-label">Statistiques</span>
+            <nav class="sidebar-nav-new">
+                <a href="#stats" class="nav-item-new active" data-section="stats">
+                    <span class="nav-icon-new">📊</span>
+                    <span class="nav-label-new">Statistiques</span>
                 </a>
-                <a href="#messages" class="nav-item" data-section="messages">
-                    <span class="nav-icon">💬</span>
-                    <span class="nav-label">Messages</span>
+                <a href="#messages" class="nav-item-new" data-section="messages">
+                    <span class="nav-icon-new">💬</span>
+                    <span class="nav-label-new">Messages</span>
                 </a>
-                <a href="#streams" class="nav-item" data-section="streams">
-                    <span class="nav-icon">📺</span>
-                    <span class="nav-label">Streams</span>
+                <a href="#streams" class="nav-item-new" data-section="streams">
+                    <span class="nav-icon-new">📺</span>
+                    <span class="nav-label-new">Streams</span>
                 </a>
-                <a href="#social" class="nav-item" data-section="social">
-                    <span class="nav-icon">🌐</span>
-                    <span class="nav-label">Réseaux sociaux</span>
+                <a href="#social" class="nav-item-new" data-section="social">
+                    <span class="nav-icon-new">🌐</span>
+                    <span class="nav-label-new">Réseaux sociaux</span>
+                </a>
+                <a href="#geolocation" class="nav-item-new" data-section="geolocation">
+                    <span class="nav-icon-new">🌍</span>
+                    <span class="nav-label-new">Géolocalisation</span>
+                </a>
+                <a href="#settings" class="nav-item-new" data-section="settings">
+                    <span class="nav-icon-new">⚙️</span>
+                    <span class="nav-label-new">Paramètres</span>
                 </a>
             </nav>
-            <div class="sidebar-footer">
-                <button id="themeToggle" class="sidebar-theme-toggle" aria-label="Changer de thème">
+            <div class="sidebar-footer-new">
+                <button id="themeToggle" class="sidebar-theme-toggle-new" aria-label="Changer de thème">
                     <span class="theme-icon">🌙</span>
                     <span>Thème</span>
                 </button>
-                <a href="index.html" class="sidebar-link">
-                    <span class="nav-icon">🏠</span>
+                <a href="index.html" class="sidebar-link-new">
+                    <span class="nav-icon-new">🏠</span>
                     <span>Accueil</span>
                 </a>
-                <button onclick="logout()" class="sidebar-logout">
-                    <span class="nav-icon">🚪</span>
+                <button onclick="logout()" class="sidebar-logout-new">
+                    <span class="nav-icon-new">🚪</span>
                     <span>Déconnexion</span>
                 </button>
             </div>
         </aside>
 
         <!-- Admin Main Content -->
-        <div class="admin-main-wrapper">
-            <header class="admin-header-modern">
-                <div class="admin-header-content">
-                    <div class="admin-breadcrumb">
-                        <span class="breadcrumb-item active" id="currentSection">Statistiques</span>
+        <div class="admin-main-wrapper-new">
+            <header class="admin-header-new">
+                <div class="admin-header-content-new">
+                    <div class="admin-breadcrumb-new">
+                        <span class="breadcrumb-item-new active" id="currentSection">Statistiques</span>
                     </div>
-                    <div class="admin-header-actions">
-                        <div class="admin-notification-badge" id="notificationBadge" style="display: none;">
-                            <span class="badge-count">0</span>
+                    <div class="admin-header-actions-new">
+                        <div class="admin-notification-badge-new" id="notificationBadge" style="display: none;">
+                            <span class="badge-count-new">0</span>
                         </div>
                     </div>
                 </div>
             </header>
 
-            <main class="admin-content-modern">
+            <main class="admin-content-new">
                 <!-- Section Statistiques -->
-                <section id="stats-section" class="admin-section active">
-                    <div class="section-header-modern">
-                        <div class="section-header-content">
-                            <h2 class="section-title-modern">
-                                <span class="section-icon">📊</span>
+                <section id="stats-section" class="admin-section-new active">
+                    <div class="section-header-new">
+                        <div class="section-header-content-new">
+                            <h2 class="section-title-new">
+                                <span class="section-icon-new">📊</span>
                                 Statistiques en Temps Réel
                             </h2>
-                            <p class="section-subtitle">Surveillez l'activité de votre site en direct</p>
+                            <p class="section-subtitle-new">Surveillez l'activité de votre site en direct</p>
                         </div>
                     </div>
                 
-                <!-- Cartes de statistiques principales -->
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon">👥</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Visiteurs Instantanés</div>
-                            <div class="stat-value" id="activeVisitors">0</div>
-                            <div class="stat-description">Actifs (5 dernières min)</div>
+                    <!-- Cartes de statistiques principales -->
+                    <div class="stats-grid-new">
+                        <div class="stat-card-new">
+                            <div class="stat-icon-new">👥</div>
+                            <div class="stat-content-new">
+                                <div class="stat-label-new">Visiteurs Instantanés</div>
+                                <div class="stat-value-new" id="activeVisitors">0</div>
+                                <div class="stat-description-new">Actifs (5 dernières min)</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📅</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Visiteurs Aujourd'hui</div>
-                            <div class="stat-value" id="todayVisitors">0</div>
-                            <div class="stat-description">Visites uniques</div>
+                        <div class="stat-card-new">
+                            <div class="stat-icon-new">📅</div>
+                            <div class="stat-content-new">
+                                <div class="stat-label-new">Visiteurs Aujourd'hui</div>
+                                <div class="stat-value-new" id="todayVisitors">0</div>
+                                <div class="stat-description-new">Visites uniques</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">🖱️</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Clics Aujourd'hui</div>
-                            <div class="stat-value" id="todayClicks">0</div>
-                            <div class="stat-description">Sur les liens Telegram</div>
+                        <div class="stat-card-new">
+                            <div class="stat-icon-new">🖱️</div>
+                            <div class="stat-content-new">
+                                <div class="stat-label-new">Clics Aujourd'hui</div>
+                                <div class="stat-value-new" id="todayClicks">0</div>
+                                <div class="stat-description-new">Sur les liens Telegram</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📈</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Total des Clics</div>
-                            <div class="stat-value" id="totalClicks">0</div>
-                            <div class="stat-description">Depuis le début</div>
+                        <div class="stat-card-new">
+                            <div class="stat-icon-new">📈</div>
+                            <div class="stat-content-new">
+                                <div class="stat-label-new">Total des Clics</div>
+                                <div class="stat-value-new" id="totalClicks">0</div>
+                                <div class="stat-description-new">Depuis le début</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">⏱️</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Clics cette Heure</div>
-                            <div class="stat-value" id="thisHourClicks">0</div>
-                            <div class="stat-description">Dernière heure</div>
+                        <div class="stat-card-new">
+                            <div class="stat-icon-new">⏱️</div>
+                            <div class="stat-content-new">
+                                <div class="stat-label-new">Clics cette Heure</div>
+                                <div class="stat-value-new" id="thisHourClicks">0</div>
+                                <div class="stat-description-new">Dernière heure</div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon">📊</div>
-                        <div class="stat-content">
-                            <div class="stat-label">Taux de Conversion</div>
-                            <div class="stat-value" id="conversionRate">0%</div>
-                            <div class="stat-description">Visites → Clics</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Graphiques -->
-                <div class="charts-container">
-                    <div class="chart-wrapper">
-                        <h3>📈 Évolution des Visites (24h)</h3>
-                        <canvas id="visitsChart"></canvas>
-                    </div>
-                    
-                    <div class="chart-wrapper">
-                        <h3>🖱️ Évolution des Clics (24h)</h3>
-                        <canvas id="clicksChart"></canvas>
-                    </div>
-                    
-                    <div class="chart-wrapper">
-                        <h3>🏆 Top 10 Streams les Plus Cliqués</h3>
-                        <canvas id="topStreamsChart"></canvas>
-                    </div>
-                    
-                    <div class="chart-wrapper">
-                        <h3>📅 Visiteurs par Jour (7 derniers jours)</h3>
-                        <canvas id="dailyVisitsChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Statistiques détaillées -->
-                <div class="detailed-stats">
-                    <h3>📋 Statistiques Détaillées</h3>
-                    <div class="detailed-stats-grid">
-                        <div class="detailed-stat-card">
-                            <h4>⏰ Clics par Heure (Aujourd'hui)</h4>
-                            <div id="clicksByHour" class="hourly-stats"></div>
-                        </div>
-                        <div class="detailed-stat-card">
-                            <h4>📊 Top 5 Streams</h4>
-                            <div id="topStreamsList" class="top-streams-list"></div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="stats-update-info">
-                    <span class="update-indicator" id="updateIndicator">🟢</span>
-                    <span id="lastUpdate">Mise à jour en cours...</span>
-                </div>
-            </section>
-
-                <!-- Section Streams -->
-                <section id="streams-section" class="admin-section">
-                    <div class="section-header-modern">
-                        <div class="section-header-content">
-                            <h2 class="section-title-modern">
-                                <span class="section-icon">➕</span>
-                                Ajouter un Stream
-                            </h2>
-                            <p class="section-subtitle">Créez et gérez vos streams</p>
-                        </div>
-                    </div>
-                <form id="streamForm" class="stream-form">
-                    <div class="form-row">
-                        <div class="form-group full-width">
-                            <label>🖼️ Image du Stream</label>
-                            <div class="image-upload-box" id="imageUploadBox">
-                                <input type="file" id="streamImage" accept="image/*" class="image-input-hidden">
-                                <div class="image-preview-wrapper">
-                                    <img id="imagePreview" src="" alt="Preview" style="display: none;">
-                                    <div class="image-placeholder" id="imagePlaceholder">
-                                        <span class="upload-icon">📷</span>
-                                        <span class="upload-text">Cliquez pour ajouter une image</span>
-                                        <span class="upload-hint">JPG, PNG (max 5MB)</span>
-                                    </div>
-                                </div>
-                                <button type="button" class="btn-remove" id="removeImageBtn" style="display: none;">❌ Supprimer</button>
+                        <div class="stat-card-new">
+                            <div class="stat-icon-new">📊</div>
+                            <div class="stat-content-new">
+                                <div class="stat-label-new">Taux de Conversion</div>
+                                <div class="stat-value-new" id="conversionRate">0%</div>
+                                <div class="stat-description-new">Visites → Clics</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="streamName">📺 Nom du Stream</label>
-                            <input type="text" id="streamName" placeholder="Ex: PSG vs Marseille" required>
-                            <div id="streamNameError" class="error-message" style="display: none;"></div>
+                    <!-- Graphiques -->
+                    <div class="charts-container-new">
+                        <div class="chart-wrapper-new">
+                            <h3>📈 Évolution des Visites (24h)</h3>
+                            <canvas id="visitsChart"></canvas>
                         </div>
-                        <div class="form-group">
-                            <label for="streamLink">🔗 Lien Telegram</label>
-                            <input type="url" id="streamLink" placeholder="https://t.me/..." required>
+                        
+                        <div class="chart-wrapper-new">
+                            <h3>🖱️ Évolution des Clics (24h)</h3>
+                            <canvas id="clicksChart"></canvas>
                         </div>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="streamDate">📅 Date</label>
-                            <input type="date" id="streamDate" required>
+                        
+                        <div class="chart-wrapper-new">
+                            <h3>🏆 Top 10 Streams les Plus Cliqués</h3>
+                            <canvas id="topStreamsChart"></canvas>
                         </div>
-                        <div class="form-group">
-                            <label for="streamTime">🕐 Heure</label>
-                            <input type="time" id="streamTime" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="streamCompetition">🏆 Compétition</label>
-                            <input type="text" id="streamCompetition" placeholder="Ligue 1, Champions League..." required>
+                        
+                        <div class="chart-wrapper-new">
+                            <h3>📅 Visiteurs par Jour (7 derniers jours)</h3>
+                            <canvas id="dailyVisitsChart"></canvas>
                         </div>
                     </div>
 
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="streamStatus">📊 Statut</label>
-                            <select id="streamStatus" required>
-                                <option value="active">🟢 Actif</option>
-                                <option value="dead">🔴 Mort</option>
-                            </select>
+                    <!-- Statistiques détaillées -->
+                    <div class="detailed-stats-new">
+                        <h3>📋 Statistiques Détaillées</h3>
+                        <div class="detailed-stats-grid-new">
+                            <div class="detailed-stat-card-new">
+                                <h4>⏰ Clics par Heure (Aujourd'hui)</h4>
+                                <div id="clicksByHour" class="hourly-stats-new"></div>
+                            </div>
+                            <div class="detailed-stat-card-new">
+                                <h4>📊 Top 5 Streams</h4>
+                                <div id="topStreamsList" class="top-streams-list-new"></div>
+                            </div>
                         </div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-large">
-                        ✅ Ajouter le Stream
-                    </button>
-                </form>
-            </section>
+                    <div class="stats-update-info-new">
+                        <span class="update-indicator-new" id="updateIndicator">🟢</span>
+                        <span id="lastUpdate">Mise à jour en cours...</span>
+                    </div>
+                </section>
 
-                <!-- Section Messages -->
-                <section id="messages-section" class="admin-section">
-                    <div class="section-header-modern">
-                        <div class="section-header-content">
-                            <h2 class="section-title-modern">
-                                <span class="section-icon">💬</span>
-                                Messages aux Visiteurs
+                <!-- Section Streams -->
+                <section id="streams-section" class="admin-section-new">
+                    <div class="section-header-new">
+                        <div class="section-header-content-new">
+                            <h2 class="section-title-new">
+                                <span class="section-icon-new">➕</span>
+                                Ajouter un Stream
                             </h2>
-                            <p class="section-subtitle">Communiquez avec vos visiteurs en temps réel</p>
+                            <p class="section-subtitle-new">Créez et gérez vos streams</p>
                         </div>
                     </div>
-                <form id="messageForm" class="stream-form">
-                    <div class="form-row">
-                        <div class="form-group full-width">
-                            <label for="messageText">💬 Message</label>
-                            <textarea id="messageText" rows="3" placeholder="Entrez votre message important à afficher aux visiteurs..." required></textarea>
+                    <form id="streamForm" class="stream-form-new">
+                        <div class="form-row-new">
+                            <div class="form-group-new full-width">
+                                <label>🖼️ Image du Stream</label>
+                                <div class="image-upload-box-new" id="imageUploadBox">
+                                    <input type="file" id="streamImage" accept="image/*" class="image-input-hidden">
+                                    <div class="image-preview-wrapper-new">
+                                        <img id="imagePreview" src="" alt="Preview" style="display: none;">
+                                        <div class="image-placeholder-new" id="imagePlaceholder">
+                                            <span class="upload-icon-new">📷</span>
+                                            <span class="upload-text-new">Cliquez pour ajouter une image</span>
+                                            <span class="upload-hint-new">JPG, PNG (max 5MB)</span>
+                                        </div>
+                                    </div>
+                                    <button type="button" class="btn-remove-new" id="removeImageBtn" style="display: none;">❌ Supprimer</button>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="messageType">🎨 Type de message</label>
-                            <select id="messageType">
-                                <option value="info">ℹ️ Information</option>
-                                <option value="success">✅ Succès</option>
-                                <option value="warning">⚠️ Avertissement</option>
-                                <option value="error">❌ Erreur</option>
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>
-                                <input type="checkbox" id="messageActive" checked>
-                                Message actif (affiché aux visiteurs)
-                            </label>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">📤 Envoyer le Message</button>
-                </form>
-                <div id="messagesList" class="messages-list" style="margin-top: 24px;"></div>
-            </section>
 
-                <!-- Section Réseaux Sociaux -->
-                <section id="social-section" class="admin-section">
-                    <div class="section-header-modern">
-                        <div class="section-header-content">
-                            <h2 class="section-title-modern">
-                                <span class="section-icon">🌐</span>
-                                Liens Sociaux
-                            </h2>
-                            <p class="section-subtitle">Configurez vos liens de réseaux sociaux</p>
+                        <div class="form-row-new">
+                            <div class="form-group-new">
+                                <label for="streamName">📺 Nom du Stream</label>
+                                <input type="text" id="streamName" placeholder="Ex: PSG vs Marseille" required>
+                                <div id="streamNameError" class="error-message-new" style="display: none;"></div>
+                            </div>
+                            <div class="form-group-new">
+                                <label for="streamLink">🔗 Lien Telegram</label>
+                                <input type="url" id="streamLink" placeholder="https://t.me/..." required>
+                            </div>
                         </div>
-                    </div>
-                <form id="socialForm" class="stream-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="discordUrl">💬 Discord</label>
-                            <input type="url" id="discordUrl" placeholder="https://discord.gg/...">
-                        </div>
-                        <div class="form-group">
-                            <label for="xUrl">𝕏 Twitter</label>
-                            <input type="url" id="xUrl" placeholder="https://x.com/...">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary">💾 Sauvegarder</button>
-                </form>
-            </section>
 
-                    <div class="section-header-modern" style="margin-top: 32px;">
-                        <div class="section-header-content">
-                            <h2 class="section-title-modern">
-                                <span class="section-icon">📋</span>
+                        <div class="form-row-new">
+                            <div class="form-group-new">
+                                <label for="streamDate">📅 Date</label>
+                                <input type="date" id="streamDate" required>
+                            </div>
+                            <div class="form-group-new">
+                                <label for="streamTime">🕐 Heure</label>
+                                <input type="time" id="streamTime" required>
+                            </div>
+                            <div class="form-group-new">
+                                <label for="streamCompetition">🏆 Compétition</label>
+                                <input type="text" id="streamCompetition" placeholder="Ligue 1, Champions League..." required>
+                            </div>
+                        </div>
+
+                        <div class="form-row-new">
+                            <div class="form-group-new">
+                                <label for="streamStatus">📊 Statut</label>
+                                <select id="streamStatus" required>
+                                    <option value="active">🟢 Actif</option>
+                                    <option value="dead">🔴 Mort</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-new btn-primary-new btn-large-new">
+                            ✅ Ajouter le Stream
+                        </button>
+                    </form>
+                    
+                    <div class="section-header-new" style="margin-top: 48px;">
+                        <div class="section-header-content-new">
+                            <h2 class="section-title-new">
+                                <span class="section-icon-new">📋</span>
                                 Streams Existants
                             </h2>
-                            <p class="section-subtitle">Gérez vos streams existants</p>
+                            <p class="section-subtitle-new">Gérez vos streams existants</p>
                         </div>
-                    <div class="filter-tabs">
-                        <button class="tab-btn active" data-filter="all">Tous</button>
-                        <button class="tab-btn" data-filter="active">Actifs</button>
-                        <button class="tab-btn" data-filter="dead">Morts</button>
+                        <div class="filter-tabs-admin">
+                            <button class="tab-btn-admin active" data-filter="all">Tous</button>
+                            <button class="tab-btn-admin" data-filter="active">Actifs</button>
+                            <button class="tab-btn-admin" data-filter="dead">Morts</button>
+                        </div>
                     </div>
-                </div>
-                <div id="adminStreamsList" class="streams-grid"></div>
-                <div id="adminEmptyState" class="empty-state">
-                    <div class="empty-icon">📋</div>
-                    <h3>Aucun stream</h3>
+                    <div id="adminStreamsList" class="streams-grid-admin"></div>
+                    <div id="adminEmptyState" class="empty-state-admin">
+                        <div class="empty-icon-admin">📋</div>
+                        <h3>Aucun stream</h3>
+                    </div>
+                </section>
+
+                <!-- Section Messages -->
+                <section id="messages-section" class="admin-section-new">
+                    <div class="section-header-new">
+                        <div class="section-header-content-new">
+                            <h2 class="section-title-new">
+                                <span class="section-icon-new">💬</span>
+                                Messages aux Visiteurs
+                            </h2>
+                            <p class="section-subtitle-new">Communiquez avec vos visiteurs en temps réel</p>
+                        </div>
+                    </div>
+                    <form id="messageForm" class="stream-form-new">
+                        <div class="form-row-new">
+                            <div class="form-group-new full-width">
+                                <label for="messageText">💬 Message</label>
+                                <textarea id="messageText" rows="3" placeholder="Entrez votre message important à afficher aux visiteurs..." required></textarea>
+                            </div>
+                        </div>
+                        <div class="form-row-new">
+                            <div class="form-group-new">
+                                <label for="messageType">🎨 Type de message</label>
+                                <select id="messageType">
+                                    <option value="info">ℹ️ Information</option>
+                                    <option value="success">✅ Succès</option>
+                                    <option value="warning">⚠️ Avertissement</option>
+                                    <option value="error">❌ Erreur</option>
+                                </select>
+                            </div>
+                            <div class="form-group-new">
+                                <label>
+                                    <input type="checkbox" id="messageActive" checked>
+                                    Message actif (affiché aux visiteurs)
+                                </label>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-new btn-primary-new">📤 Envoyer le Message</button>
+                    </form>
+                    <div id="messagesList" class="messages-list-new" style="margin-top: 32px;"></div>
+                </section>
+
+                <!-- Section Réseaux Sociaux -->
+                <section id="social-section" class="admin-section-new">
+                    <div class="section-header-new">
+                        <div class="section-header-content-new">
+                            <h2 class="section-title-new">
+                                <span class="section-icon-new">🌐</span>
+                                Liens Sociaux
+                            </h2>
+                            <p class="section-subtitle-new">Configurez vos liens de réseaux sociaux</p>
+                        </div>
+                    </div>
+                    <form id="socialForm" class="stream-form-new">
+                        <div class="form-row-new">
+                            <div class="form-group-new">
+                                <label for="discordUrl">💬 Discord</label>
+                                <input type="url" id="discordUrl" placeholder="https://discord.gg/...">
+                            </div>
+                            <div class="form-group-new">
+                                <label for="xUrl">𝕏 Twitter</label>
+                                <input type="url" id="xUrl" placeholder="https://x.com/...">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn-new btn-primary-new">💾 Sauvegarder</button>
+                    </form>
+                </section>
+
+                <!-- Section Géolocalisation -->
+                <section id="geolocation-section" class="admin-section-new">
+                    <div class="section-header-new">
+                        <div class="section-header-content-new">
+                            <h2 class="section-title-new">
+                                <span class="section-icon-new">🌍</span>
+                                Géolocalisation des Visiteurs
+                            </h2>
+                            <p class="section-subtitle-new">Visualisez en temps réel les visiteurs par pays</p>
+                        </div>
+                    </div>
+
+                    <!-- Statistiques par pays -->
+                    <div class="geolocation-stats-new">
+                        <div class="geo-stat-card-new">
+                            <div class="geo-stat-icon-new">🌎</div>
+                            <div class="geo-stat-content-new">
+                                <div class="geo-stat-label-new">Pays Connectés</div>
+                                <div class="geo-stat-value-new" id="totalCountries">0</div>
+                            </div>
+                        </div>
+                        <div class="geo-stat-card-new">
+                            <div class="geo-stat-icon-new">👥</div>
+                            <div class="geo-stat-content-new">
+                                <div class="geo-stat-label-new">Visiteurs Actifs</div>
+                                <div class="geo-stat-value-new" id="activeVisitorsGeo">0</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Carte du monde -->
+                    <div class="map-container-new">
+                        <div id="worldMap" class="world-map-new"></div>
+                    </div>
+
+                    <!-- Liste des pays -->
+                    <div class="countries-list-container-new">
+                        <h3 class="countries-list-title-new">📊 Visiteurs par Pays</h3>
+                        <div class="countries-list-new" id="countriesList">
+                            <!-- Liste générée dynamiquement -->
+                        </div>
+                    </div>
+
+                    <!-- Liste des IPs -->
+                    <div class="ips-list-container-new">
+                        <h3 class="ips-list-title-new">🔍 Adresses IP Actives</h3>
+                        <div class="ips-list-new" id="ipsList">
+                            <!-- Liste générée dynamiquement -->
+                        </div>
+                    </div>
+
+                    <div class="stats-update-info-new">
+                        <span class="update-indicator-new" id="geoUpdateIndicator">🟢</span>
+                        <span id="geoLastUpdate">Mise à jour en cours...</span>
+                    </div>
+                </section>
+
+                <!-- Section Paramètres -->
+                <section id="settings-section" class="admin-section-new">
+                    <div class="section-header-new">
+                        <div class="section-header-content-new">
+                            <h2 class="section-title-new">
+                                <span class="section-icon-new">⚙️</span>
+                                Paramètres du Site
+                            </h2>
+                            <p class="section-subtitle-new">Configurez les options de votre site</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-container-new">
+                        <div class="setting-card-new">
+                            <div class="setting-header-new">
+                                <div class="setting-info-new">
+                                    <h3 class="setting-title-new">🔐 Page de Configuration</h3>
+                                    <p class="setting-description-new">Activez ou désactivez l'accès à la page setup.html (création de compte admin)</p>
+                                </div>
+                                <label class="toggle-switch-new">
+                                    <input type="checkbox" id="setupPageEnabled" onchange="toggleSetupPage()">
+                                    <span class="toggle-slider-new"></span>
+                                </label>
+                            </div>
+                            <div class="setting-status-new" id="setupPageStatus">
+                                <span class="status-indicator-new">🟢</span>
+                                <span>La page setup.html est actuellement <strong>activée</strong></span>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </main>
         </div>
-
-        <footer class="app-footer">
-            <div class="footer-content">
-                <p>&copy; 2024 ABD PLAYER. Tous droits réservés.</p>
-                <div class="footer-links">
-                    <a href="index.html">Accueil</a>
-                    <span>•</span>
-                    <a href="legal.html">Mentions Légales</a>
-                    <span>•</span>
-                    <a href="legal.html#dmca">DMCA</a>
-                </div>
-            </div>
-        </footer>
     </div>
 
     <!-- Modal d'édition -->
-    <div id="editModal" class="modal" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
+    <div id="editModal" class="modal-new" style="display: none;">
+        <div class="modal-content-new">
+            <div class="modal-header-new">
                 <h2>✏️ Modifier le Stream</h2>
-                <button onclick="closeEditModal()" class="modal-close">&times;</button>
+                <button onclick="closeEditModal()" class="modal-close-new">&times;</button>
             </div>
-            <form id="editStreamForm" class="stream-form">
-                <div class="form-row">
-                    <div class="form-group full-width">
+            <form id="editStreamForm" class="stream-form-new">
+                <div class="form-row-new">
+                    <div class="form-group-new full-width">
                         <label>🖼️ Image du Stream</label>
-                        <div class="image-upload-box">
+                        <div class="image-upload-box-new">
                             <input type="file" id="editStreamImage" accept="image/*" class="image-input-hidden">
-                            <div class="image-preview-wrapper edit-image-preview-wrapper">
+                            <div class="image-preview-wrapper-new edit-image-preview-wrapper-new">
                                 <img id="editImagePreview" src="" alt="Preview" style="display: none;">
-                                <div class="image-placeholder" id="editImagePlaceholder">
-                                    <span class="upload-icon">📷</span>
-                                    <span class="upload-text">Cliquez pour changer l'image</span>
-                                    <span class="upload-hint">JPG, PNG (max 5MB)</span>
+                                <div class="image-placeholder-new" id="editImagePlaceholder">
+                                    <span class="upload-icon-new">📷</span>
+                                    <span class="upload-text-new">Cliquez pour changer l'image</span>
+                                    <span class="upload-hint-new">JPG, PNG (max 5MB)</span>
                                 </div>
                             </div>
-                            <button type="button" class="btn-remove" id="editRemoveImageBtn" style="display: none;">❌ Supprimer</button>
+                            <button type="button" class="btn-remove-new" id="editRemoveImageBtn" style="display: none;">❌ Supprimer</button>
                         </div>
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
+                <div class="form-row-new">
+                    <div class="form-group-new">
                         <label for="editStreamName">📺 Nom du Stream</label>
                         <input type="text" id="editStreamName" placeholder="Ex: PSG vs Marseille" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group-new">
                         <label for="editStreamLink">🔗 Lien Telegram</label>
                         <input type="url" id="editStreamLink" placeholder="https://t.me/..." required>
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
+                <div class="form-row-new">
+                    <div class="form-group-new">
                         <label for="editStreamDate">📅 Date</label>
                         <input type="date" id="editStreamDate" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group-new">
                         <label for="editStreamTime">🕐 Heure</label>
                         <input type="time" id="editStreamTime" required>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group-new">
                         <label for="editStreamCompetition">🏆 Compétition</label>
                         <input type="text" id="editStreamCompetition" placeholder="Ligue 1, Champions League..." required>
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="form-group">
+                <div class="form-row-new">
+                    <div class="form-group-new">
                         <label for="editStreamStatus">📊 Statut</label>
                         <select id="editStreamStatus" required>
                             <option value="active">🟢 Actif</option>
@@ -474,16 +569,16 @@
                     </div>
                 </div>
 
-                <div class="modal-actions">
-                    <button type="button" onclick="closeEditModal()" class="btn btn-outline">❌ Annuler</button>
-                    <button type="submit" class="btn btn-primary">✅ Sauvegarder</button>
+                <div class="modal-actions-new">
+                    <button type="button" onclick="closeEditModal()" class="btn-new btn-outline-new">❌ Annuler</button>
+                    <button type="submit" class="btn-new btn-primary-new">✅ Sauvegarder</button>
                 </div>
             </form>
         </div>
     </div>
 
     <script src="loader.js"></script>
-    <script src="firebase-storage.js"></script>
+    <script data-enc="firebase-storage.js.enc.js"></script>
     <script data-enc="config.js.enc.js"></script>
     <script data-enc="protection.js.enc.js"></script>
     <script data-enc="auth.js.enc.js"></script>
