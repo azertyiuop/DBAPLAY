@@ -21,18 +21,11 @@
     </script>
 </head>
 <body>
-    <!-- Loader pendant la vérification -->
-    <div id="setupLoader" style="display: flex; justify-content: center; align-items: center; height: 100vh; background: var(--bg-dark); color: var(--text-primary); font-family: 'Inter', sans-serif; flex-direction: column; gap: 20px; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999;">
-        <div style="font-size: 24px;">🔐 Vérification de l'accès...</div>
-        <div style="width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+    <!-- Loader masqué (plus nécessaire) -->
+    <div id="setupLoader" style="display: none;">
     </div>
-    <style>
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
 
-    <div class="app-container" id="appContainer" style="display: none;">
+    <div class="app-container" id="appContainer" style="display: block;">
         <!-- Header masqué si page désactivée -->
         <header class="app-header" id="appHeader">
             <div class="header-wrapper">
@@ -91,8 +84,8 @@
                 }
             </style>
             
-            <!-- Formulaire de setup (masqué par défaut jusqu'à vérification) -->
-            <section id="setupFormSection" class="admin-panel" style="display: none;">
+            <!-- Formulaire de setup (toujours visible) -->
+            <section id="setupFormSection" class="admin-panel" style="display: block;">
                 <h2>🔐 Créer un compte administrateur</h2>
                 <form id="setupForm" class="stream-form">
                     <div class="form-row">
@@ -156,161 +149,8 @@
     <script data-enc="common.js.enc.js"></script>
     <script data-enc="auth.js.enc.js"></script>
     <script>
-        // Vérifier si la page setup est activée - REQUÊTE DIRECTE À LA BDD
-        async function checkSetupPageEnabled() {
-            const loader = document.getElementById('setupLoader');
-            const appContainer = document.getElementById('appContainer');
-            const disabledMsg = document.getElementById('disabledMessage');
-            const setupForm = document.getElementById('setupFormSection');
-            
-            console.log('🔍 Début de la vérification setupPageEnabled...');
-            
-            try {
-                // Attendre que les scripts soient chargés (common.js, turso-storage.js)
-                let attempts = 0;
-                const maxAttempts = 150;
-                
-                while (attempts < maxAttempts) {
-                    // Vérifier si checkSetupPageStatusFromDB est disponible
-                    if (typeof window.checkSetupPageStatusFromDB === 'function') {
-                        console.log('✅ checkSetupPageStatusFromDB trouvé, vérification en cours...');
-                        break;
-                    }
-                    
-                    // Vérifier aussi si loadData est disponible (fallback)
-                    if (typeof window.loadData === 'function' && attempts > 50) {
-                        console.log('⚠️ Utilisation de loadData comme fallback...');
-                        break;
-                    }
-                    
-                    await new Promise(resolve => setTimeout(resolve, 100));
-                    attempts++;
-                }
-                
-                // La page setup est toujours accessible (fonctionnalité désactivée)
-                let enabled = true;
-                console.log('✅ Page setup toujours accessible');
-                
-                // Masquer le loader
-                if (loader) loader.style.display = 'none';
-                
-                    if (false) { // Désactivé - la page est toujours accessible
-                        console.log('🚫 PAGE DÉSACTIVÉE - Affichage du message 404');
-                        // PAGE DÉSACTIVÉE - Afficher le message 404
-                        if (appContainer) appContainer.style.display = 'block';
-                        
-                        // Masquer le header
-                        const header = document.getElementById('appHeader');
-                        if (header) header.style.display = 'none';
-                        
-                        // Afficher le message 404
-                        if (disabledMsg) {
-                            disabledMsg.style.display = 'flex';
-                            disabledMsg.style.flexDirection = 'column';
-                            disabledMsg.style.justifyContent = 'center';
-                            disabledMsg.style.alignItems = 'center';
-                            disabledMsg.style.minHeight = '70vh';
-                            disabledMsg.style.width = '100%';
-                        }
-                        
-                        // Ajuster le main-content pour le centrage
-                        const mainContent = document.querySelector('.main-content');
-                        if (mainContent) {
-                            mainContent.style.display = 'flex';
-                            mainContent.style.flexDirection = 'column';
-                            mainContent.style.justifyContent = 'center';
-                            mainContent.style.minHeight = 'calc(100vh - 100px)';
-                        }
-                        
-                        // Masquer le formulaire
-                        if (setupForm) setupForm.style.display = 'none';
-                        
-                        // Masquer le footer
-                        const footer = document.querySelector('.login-footer');
-                        if (footer) footer.style.display = 'none';
-                        
-                        // Empêcher toute interaction avec le formulaire
-                        const form = document.getElementById('setupForm');
-                        if (form) {
-                            form.style.pointerEvents = 'none';
-                            form.style.opacity = '0.3';
-                        }
-                        
-                        return false;
-                } else {
-                    console.log('✅ PAGE ACTIVÉE - Affichage du formulaire');
-                    // PAGE ACTIVÉE - Afficher le formulaire
-                    if (appContainer) appContainer.style.display = 'block';
-                    if (disabledMsg) disabledMsg.style.display = 'none';
-                    if (setupForm) setupForm.style.display = 'block';
-                    return true;
-                }
-            } catch (error) {
-                console.error('❌ Erreur lors de la vérification:', error);
-                // En cas d'erreur, bloquer par sécurité
-                if (loader) loader.style.display = 'none';
-                if (appContainer) appContainer.style.display = 'block';
-                if (disabledMsg) disabledMsg.style.display = 'block';
-                if (setupForm) setupForm.style.display = 'none';
-                return false;
-            }
-        }
-        
-        // Attendre que le DOM soit prêt et que les scripts soient chargés
-        (async function() {
-            console.log('🚀 Initialisation de setup.html...');
-            
-            // Attendre que le DOM soit chargé
-            if (document.readyState === 'loading') {
-                console.log('⏳ Attente du chargement du DOM...');
-                await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
-            }
-            
-            console.log('✅ DOM chargé');
-            
-            // Attendre que les scripts soient déchiffrés et chargés
-            console.log('⏳ Attente du chargement des scripts chiffrés...');
-            let scriptCheckAttempts = 0;
-            while (scriptCheckAttempts < 100) {
-                // Vérifier si les fonctions nécessaires sont disponibles
-                if (typeof window.checkSetupPageStatusFromDB === 'function' || 
-                    typeof window.loadData === 'function' ||
-                    typeof window.loadDataFromSupabase === 'function') {
-                    console.log('✅ Scripts chargés après', scriptCheckAttempts * 100, 'ms');
-                    break;
-                }
-                await new Promise(resolve => setTimeout(resolve, 100));
-                scriptCheckAttempts++;
-            }
-            
-            if (scriptCheckAttempts >= 100) {
-                console.warn('⚠️ Scripts non chargés après 10 secondes, tentative de vérification quand même...');
-            }
-            
-            // Empêcher l'affichage du contenu avant la vérification
-            document.body.style.overflow = 'hidden';
-            
-            console.log('🔍 Démarrage de la vérification setupPageEnabled...');
-            const enabled = await checkSetupPageEnabled();
-            
-            console.log('✅ Vérification terminée, résultat:', enabled ? 'ACTIVÉ' : 'DÉSACTIVÉ');
-            
-            // Réactiver le scroll si nécessaire
-            if (enabled) {
-                document.body.style.overflow = '';
-            }
-        })();
-        
-        // Empêcher la soumission du formulaire si la page est désactivée
-        document.addEventListener('DOMContentLoaded', function() {
-            const form = document.getElementById('setupForm');
-            if (form) {
-                form.addEventListener('submit', async function(e) {
-                    // La page setup est toujours accessible (vérification désactivée)
-                    // Pas de vérification nécessaire
-                });
-            }
-        });
+        // La page setup est toujours accessible - pas de vérification nécessaire
+        console.log('✅ Page setup toujours accessible');
     </script>
     <script>
         // Fonction pour afficher/masquer le mot de passe
