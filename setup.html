@@ -141,60 +141,82 @@
             const disabledMsg = document.getElementById('disabledMessage');
             const setupForm = document.getElementById('setupFormSection');
             
+            console.log('🔍 Début de la vérification setupPageEnabled...');
+            
             try {
-                // Attendre que checkSetupPageStatusFromDB soit disponible (jusqu'à 10 secondes)
+                // Attendre que les scripts soient chargés (common.js, firebase-storage.js)
                 let attempts = 0;
-                while (typeof checkSetupPageStatusFromDB === 'undefined' && attempts < 100) {
+                const maxAttempts = 150;
+                
+                while (attempts < maxAttempts) {
+                    // Vérifier si checkSetupPageStatusFromDB est disponible
+                    if (typeof window.checkSetupPageStatusFromDB === 'function') {
+                        console.log('✅ checkSetupPageStatusFromDB trouvé, vérification en cours...');
+                        break;
+                    }
+                    
+                    // Vérifier aussi si loadData est disponible (fallback)
+                    if (typeof window.loadData === 'function' && attempts > 50) {
+                        console.log('⚠️ Utilisation de loadData comme fallback...');
+                        break;
+                    }
+                    
                     await new Promise(resolve => setTimeout(resolve, 100));
                     attempts++;
                 }
                 
-                if (typeof checkSetupPageStatusFromDB === 'function') {
-                    // REQUÊTE DIRECTE À LA BDD
-                    const enabled = await checkSetupPageStatusFromDB();
-                    
-                    // Masquer le loader
-                    if (loader) loader.style.display = 'none';
-                    
-                    if (!enabled) {
-                        // PAGE DÉSACTIVÉE - Afficher uniquement le message d'erreur
-                        if (appContainer) appContainer.style.display = 'block';
-                        if (disabledMsg) disabledMsg.style.display = 'block';
-                        if (setupForm) setupForm.style.display = 'none';
-                        
-                        // Empêcher toute interaction avec le formulaire
-                        const form = document.getElementById('setupForm');
-                        if (form) {
-                            form.style.pointerEvents = 'none';
-                            form.style.opacity = '0.3';
-                        }
-                        
-                        // Rediriger après 5 secondes si l'utilisateur ne fait rien
-                        setTimeout(() => {
-                            if (confirm('La page de configuration est désactivée. Voulez-vous retourner à l\'accueil ?')) {
-                                window.location.href = 'index.html';
-                            }
-                        }, 5000);
-                        
-                        return false;
-                    } else {
-                        // PAGE ACTIVÉE - Afficher le formulaire
-                        if (appContainer) appContainer.style.display = 'block';
-                        if (disabledMsg) disabledMsg.style.display = 'none';
-                        if (setupForm) setupForm.style.display = 'block';
-                        return true;
-                    }
+                let enabled = true;
+                
+                // Essayer d'abord avec checkSetupPageStatusFromDB
+                if (typeof window.checkSetupPageStatusFromDB === 'function') {
+                    console.log('📡 Requête directe à la BDD...');
+                    enabled = await window.checkSetupPageStatusFromDB();
+                    console.log('📊 Résultat BDD:', enabled ? 'ACTIVÉ' : 'DÉSACTIVÉ');
+                } else if (typeof window.loadData === 'function') {
+                    console.log('📡 Utilisation de loadData...');
+                    const data = await window.loadData();
+                    enabled = data.setupPageEnabled !== false;
+                    console.log('📊 Résultat loadData:', enabled ? 'ACTIVÉ' : 'DÉSACTIVÉ');
                 } else {
-                    // Si la fonction n'est pas disponible après 10 secondes, bloquer par sécurité
-                    console.error('checkSetupPageStatusFromDB non disponible, blocage par sécurité');
-                    if (loader) loader.style.display = 'none';
+                    console.error('❌ Aucune fonction de vérification disponible');
+                    enabled = false; // Bloquer par sécurité
+                }
+                
+                // Masquer le loader
+                if (loader) loader.style.display = 'none';
+                
+                if (!enabled) {
+                    console.log('🚫 PAGE DÉSACTIVÉE - Blocage de l\'accès');
+                    // PAGE DÉSACTIVÉE - Afficher uniquement le message d'erreur
                     if (appContainer) appContainer.style.display = 'block';
                     if (disabledMsg) disabledMsg.style.display = 'block';
                     if (setupForm) setupForm.style.display = 'none';
+                    
+                    // Empêcher toute interaction avec le formulaire
+                    const form = document.getElementById('setupForm');
+                    if (form) {
+                        form.style.pointerEvents = 'none';
+                        form.style.opacity = '0.3';
+                    }
+                    
+                    // Rediriger après 5 secondes si l'utilisateur ne fait rien
+                    setTimeout(() => {
+                        if (confirm('La page de configuration est désactivée. Voulez-vous retourner à l\'accueil ?')) {
+                            window.location.href = 'index.html';
+                        }
+                    }, 5000);
+                    
                     return false;
+                } else {
+                    console.log('✅ PAGE ACTIVÉE - Affichage du formulaire');
+                    // PAGE ACTIVÉE - Afficher le formulaire
+                    if (appContainer) appContainer.style.display = 'block';
+                    if (disabledMsg) disabledMsg.style.display = 'none';
+                    if (setupForm) setupForm.style.display = 'block';
+                    return true;
                 }
             } catch (error) {
-                console.error('Erreur lors de la vérification:', error);
+                console.error('❌ Erreur lors de la vérification:', error);
                 // En cas d'erreur, bloquer par sécurité
                 if (loader) loader.style.display = 'none';
                 if (appContainer) appContainer.style.display = 'block';
@@ -204,11 +226,20 @@
             }
         }
         
-        // Vérifier IMMÉDIATEMENT au chargement de la page
+        // Attendre que le DOM soit prêt et que les scripts soient chargés
         (async function() {
+            // Attendre que le DOM soit chargé
+            if (document.readyState === 'loading') {
+                await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
+            }
+            
+            // Attendre un peu plus pour que les scripts chiffrés soient déchiffrés
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
             // Empêcher l'affichage du contenu avant la vérification
             document.body.style.overflow = 'hidden';
             
+            console.log('🚀 Démarrage de la vérification...');
             const enabled = await checkSetupPageEnabled();
             
             // Réactiver le scroll si nécessaire
