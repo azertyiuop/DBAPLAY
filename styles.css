@@ -2455,6 +2455,16 @@ body {
     min-width: 60px;
 }
 
+.stream-last-modified {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+    margin-bottom: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    text-align: center;
+}
+
 .stream-link-modern {
     display: flex;
     align-items: center;
@@ -3477,6 +3487,16 @@ body {
     color: var(--text-primary);
     min-width: 60px;
     font-weight: 600;
+}
+
+.stream-last-modified {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 8px;
+    margin-bottom: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--border);
+    text-align: center;
 }
 
 .stream-link-modern {
