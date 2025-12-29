@@ -134,7 +134,7 @@
     <script data-enc="common.js.enc.js"></script>
     <script data-enc="auth.js.enc.js"></script>
     <script>
-        // Vérifier si la page setup est activée - BLOQUANT
+        // Vérifier si la page setup est activée - REQUÊTE DIRECTE À LA BDD
         async function checkSetupPageEnabled() {
             const loader = document.getElementById('setupLoader');
             const appContainer = document.getElementById('appContainer');
@@ -142,16 +142,16 @@
             const setupForm = document.getElementById('setupFormSection');
             
             try {
-                // Attendre que loadData soit disponible (jusqu'à 10 secondes)
+                // Attendre que checkSetupPageStatusFromDB soit disponible (jusqu'à 10 secondes)
                 let attempts = 0;
-                while (typeof loadData === 'undefined' && attempts < 100) {
+                while (typeof checkSetupPageStatusFromDB === 'undefined' && attempts < 100) {
                     await new Promise(resolve => setTimeout(resolve, 100));
                     attempts++;
                 }
                 
-                if (typeof loadData === 'function') {
-                    const data = await loadData();
-                    const enabled = data.setupPageEnabled !== false;
+                if (typeof checkSetupPageStatusFromDB === 'function') {
+                    // REQUÊTE DIRECTE À LA BDD
+                    const enabled = await checkSetupPageStatusFromDB();
                     
                     // Masquer le loader
                     if (loader) loader.style.display = 'none';
@@ -185,22 +185,22 @@
                         return true;
                     }
                 } else {
-                    // Si loadData n'est pas disponible après 10 secondes, considérer comme activé par défaut
-                    console.warn('loadData non disponible, activation par défaut');
+                    // Si la fonction n'est pas disponible après 10 secondes, bloquer par sécurité
+                    console.error('checkSetupPageStatusFromDB non disponible, blocage par sécurité');
                     if (loader) loader.style.display = 'none';
                     if (appContainer) appContainer.style.display = 'block';
-                    if (disabledMsg) disabledMsg.style.display = 'none';
-                    if (setupForm) setupForm.style.display = 'block';
-                    return true;
+                    if (disabledMsg) disabledMsg.style.display = 'block';
+                    if (setupForm) setupForm.style.display = 'none';
+                    return false;
                 }
             } catch (error) {
                 console.error('Erreur lors de la vérification:', error);
-                // En cas d'erreur, masquer le loader et afficher le formulaire par défaut
+                // En cas d'erreur, bloquer par sécurité
                 if (loader) loader.style.display = 'none';
                 if (appContainer) appContainer.style.display = 'block';
-                if (disabledMsg) disabledMsg.style.display = 'none';
-                if (setupForm) setupForm.style.display = 'block';
-                return true;
+                if (disabledMsg) disabledMsg.style.display = 'block';
+                if (setupForm) setupForm.style.display = 'none';
+                return false;
             }
         }
         
@@ -392,12 +392,18 @@
                 setupForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     
-                    // VÉRIFICATION CRITIQUE : Vérifier à nouveau si la page est activée
+                    // VÉRIFICATION CRITIQUE : Vérifier directement dans la BDD
                     try {
-                        const data = await loadData();
-                        if (data.setupPageEnabled === false) {
-                            alert('❌ La page de configuration a été désactivée. Vous ne pouvez pas créer de compte.');
-                            window.location.href = 'index.html';
+                        if (typeof checkSetupPageStatusFromDB === 'function') {
+                            const enabled = await checkSetupPageStatusFromDB();
+                            if (!enabled) {
+                                alert('❌ La page de configuration a été désactivée. Vous ne pouvez pas créer de compte.');
+                                window.location.href = 'index.html';
+                                return false;
+                            }
+                        } else {
+                            // Si la fonction n'est pas disponible, bloquer par sécurité
+                            alert('❌ Erreur lors de la vérification. Accès refusé.');
                             return false;
                         }
                     } catch (error) {
