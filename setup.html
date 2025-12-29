@@ -12,23 +12,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script>
         // Initialiser le thème immédiatement pour éviter le flash
         (function() {
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
-        
-        // Filtrer les erreurs 404 Firebase (longue polling - normales et bénignes)
-        window.addEventListener('error', function(e) {
-            if (e.target && e.target.src && e.target.src.includes('.lp?') && e.target.src.includes('firebase')) {
-                e.preventDefault();
-                return false;
-            }
-        }, true);
     </script>
 </head>
 <body>
@@ -161,7 +150,7 @@
     </div>
 
     <script src="loader.js"></script>
-    <script data-enc="firebase-storage.js.enc.js"></script>
+    <script data-enc="turso-storage.js.enc.js"></script>
     <script data-enc="config.js.enc.js"></script>
     <script data-enc="protection.js.enc.js"></script>
     <script data-enc="common.js.enc.js"></script>
@@ -177,7 +166,7 @@
             console.log('🔍 Début de la vérification setupPageEnabled...');
             
             try {
-                // Attendre que les scripts soient chargés (common.js, firebase-storage.js)
+                // Attendre que les scripts soient chargés (common.js, turso-storage.js)
                 let attempts = 0;
                 const maxAttempts = 150;
                 
@@ -299,7 +288,7 @@
                 // Vérifier si les fonctions nécessaires sont disponibles
                 if (typeof window.checkSetupPageStatusFromDB === 'function' || 
                     typeof window.loadData === 'function' ||
-                    typeof window.initFirebase === 'function') {
+                    typeof window.loadDataFromSupabase === 'function') {
                     console.log('✅ Scripts chargés après', scriptCheckAttempts * 100, 'ms');
                     break;
                 }
