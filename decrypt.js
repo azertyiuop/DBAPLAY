@@ -195,8 +195,12 @@ async function loadAndDecrypt(filePath) {
             ? filePath 
             : ENCRYPTED_DIR + '/' + filePath;
         
+        // Ajouter un paramètre de version pour éviter le cache
+        const version = '?v=' + Date.now();
+        const fullPathWithVersion = fullPath + version;
+        
         // Charger le fichier chiffré
-        const response = await fetch(fullPath);
+        const response = await fetch(fullPathWithVersion);
         if (!response.ok) {
             throw new Error(`Erreur HTTP: ${response.status}`);
         }
