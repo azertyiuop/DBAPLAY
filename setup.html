@@ -187,27 +187,14 @@
                     attempts++;
                 }
                 
+                // La page setup est toujours accessible (fonctionnalité désactivée)
                 let enabled = true;
-                
-                // Essayer d'abord avec checkSetupPageStatusFromDB
-                if (typeof window.checkSetupPageStatusFromDB === 'function') {
-                    console.log('📡 Requête directe à la BDD...');
-                    enabled = await window.checkSetupPageStatusFromDB();
-                    console.log('📊 Résultat BDD:', enabled ? 'ACTIVÉ' : 'DÉSACTIVÉ');
-                } else if (typeof window.loadData === 'function') {
-                    console.log('📡 Utilisation de loadData...');
-                    const data = await window.loadData();
-                    enabled = data.setupPageEnabled !== false;
-                    console.log('📊 Résultat loadData:', enabled ? 'ACTIVÉ' : 'DÉSACTIVÉ');
-                } else {
-                    console.error('❌ Aucune fonction de vérification disponible');
-                    enabled = false; // Bloquer par sécurité
-                }
+                console.log('✅ Page setup toujours accessible');
                 
                 // Masquer le loader
                 if (loader) loader.style.display = 'none';
                 
-                    if (!enabled) {
+                    if (false) { // Désactivé - la page est toujours accessible
                         console.log('🚫 PAGE DÉSACTIVÉE - Affichage du message 404');
                         // PAGE DÉSACTIVÉE - Afficher le message 404
                         if (appContainer) appContainer.style.display = 'block';
@@ -319,14 +306,8 @@
             const form = document.getElementById('setupForm');
             if (form) {
                 form.addEventListener('submit', async function(e) {
-                    // Vérifier à nouveau avant la soumission
-                    const data = await loadData();
-                    if (data.setupPageEnabled === false) {
-                        e.preventDefault();
-                        alert('❌ La page de configuration a été désactivée. Vous ne pouvez pas créer de compte.');
-                        window.location.href = 'index.html';
-                        return false;
-                    }
+                    // La page setup est toujours accessible (vérification désactivée)
+                    // Pas de vérification nécessaire
                 });
             }
         });
@@ -489,41 +470,8 @@
                 setupForm.addEventListener('submit', async (e) => {
                     e.preventDefault();
                     
-                    // VÉRIFICATION CRITIQUE 1: Vérifier directement dans la BDD
-                    console.log('🔍 Vérification avant soumission du formulaire...');
-                    try {
-                        let enabled = false;
-                        
-                        // Essayer d'abord avec checkSetupPageStatusFromDB
-                        if (typeof window.checkSetupPageStatusFromDB === 'function') {
-                            console.log('📡 Requête directe à la BDD...');
-                            enabled = await window.checkSetupPageStatusFromDB();
-                            console.log('📊 Résultat:', enabled ? 'ACTIVÉ' : 'DÉSACTIVÉ');
-                        } else if (typeof window.loadData === 'function') {
-                            console.log('📡 Utilisation de loadData...');
-                            const data = await window.loadData();
-                            enabled = data.setupPageEnabled !== false;
-                            console.log('📊 Résultat:', enabled ? 'ACTIVÉ' : 'DÉSACTIVÉ');
-                        } else {
-                            console.error('❌ Aucune fonction de vérification disponible');
-                            alert('❌ Erreur: Impossible de vérifier le statut. Accès refusé par sécurité.');
-                            return false;
-                        }
-                        
-                        if (!enabled) {
-                            console.error('❌ BLOQUÉ: La page setup est désactivée');
-                            alert('❌ La page de configuration a été désactivée. Vous ne pouvez pas créer de compte.');
-                            window.location.href = 'index.html';
-                            return false;
-                        }
-                        
-                        console.log('✅ Vérification passée, soumission du formulaire autorisée');
-                    } catch (error) {
-                        console.error('❌ Erreur lors de la vérification:', error);
-                        // En cas d'erreur, bloquer par sécurité
-                        alert('❌ Erreur lors de la vérification. Accès refusé par sécurité.');
-                        return false;
-                    }
+                    // La page setup est toujours accessible (vérification désactivée)
+                    console.log('✅ Soumission du formulaire autorisée');
                     
                     const username = document.getElementById('username').value.trim();
                     const password = document.getElementById('password').value;
