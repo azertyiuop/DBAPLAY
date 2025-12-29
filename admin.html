@@ -14,23 +14,12 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
     <script>
         // Initialiser le thème immédiatement pour éviter le flash
         (function() {
             const savedTheme = localStorage.getItem('theme') || 'dark';
             document.documentElement.setAttribute('data-theme', savedTheme);
         })();
-        
-        // Filtrer les erreurs 404 Firebase (longue polling - normales et bénignes)
-        window.addEventListener('error', function(e) {
-            if (e.target && e.target.src && e.target.src.includes('.lp?') && e.target.src.includes('firebase')) {
-                e.preventDefault();
-                return false;
-            }
-        }, true);
     </script>
     <script>
         function hideLoadingMessage() {
@@ -612,7 +601,7 @@
     </div>
 
     <script src="loader.js"></script>
-    <script data-enc="firebase-storage.js.enc.js"></script>
+    <script data-enc="turso-storage.js.enc.js"></script>
     <script data-enc="config.js.enc.js"></script>
     <script data-enc="protection.js.enc.js"></script>
     <script data-enc="auth.js.enc.js"></script>
