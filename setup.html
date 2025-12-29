@@ -150,6 +150,7 @@
     </div>
 
     <script src="loader.js"></script>
+    <script data-enc="firebase-storage.js.enc.js"></script>
     <script data-enc="config.js.enc.js"></script>
     <script data-enc="protection.js.enc.js"></script>
     <script data-enc="common.js.enc.js"></script>
@@ -270,19 +271,42 @@
         
         // Attendre que le DOM soit prêt et que les scripts soient chargés
         (async function() {
+            console.log('🚀 Initialisation de setup.html...');
+            
             // Attendre que le DOM soit chargé
             if (document.readyState === 'loading') {
+                console.log('⏳ Attente du chargement du DOM...');
                 await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve));
             }
             
-            // Attendre un peu plus pour que les scripts chiffrés soient déchiffrés
-            await new Promise(resolve => setTimeout(resolve, 500));
+            console.log('✅ DOM chargé');
+            
+            // Attendre que les scripts soient déchiffrés et chargés
+            console.log('⏳ Attente du chargement des scripts chiffrés...');
+            let scriptCheckAttempts = 0;
+            while (scriptCheckAttempts < 100) {
+                // Vérifier si les fonctions nécessaires sont disponibles
+                if (typeof window.checkSetupPageStatusFromDB === 'function' || 
+                    typeof window.loadData === 'function' ||
+                    typeof window.initFirebase === 'function') {
+                    console.log('✅ Scripts chargés après', scriptCheckAttempts * 100, 'ms');
+                    break;
+                }
+                await new Promise(resolve => setTimeout(resolve, 100));
+                scriptCheckAttempts++;
+            }
+            
+            if (scriptCheckAttempts >= 100) {
+                console.warn('⚠️ Scripts non chargés après 10 secondes, tentative de vérification quand même...');
+            }
             
             // Empêcher l'affichage du contenu avant la vérification
             document.body.style.overflow = 'hidden';
             
-            console.log('🚀 Démarrage de la vérification...');
+            console.log('🔍 Démarrage de la vérification setupPageEnabled...');
             const enabled = await checkSetupPageEnabled();
+            
+            console.log('✅ Vérification terminée, résultat:', enabled ? 'ACTIVÉ' : 'DÉSACTIVÉ');
             
             // Réactiver le scroll si nécessaire
             if (enabled) {
