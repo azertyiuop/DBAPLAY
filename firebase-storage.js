@@ -1,174 +1,260 @@
-// Système de stockage Firebase Realtime Database
-// Remplace GitHub Gist - Gratuit et sans limite de rate
 
-// Initialisation Firebase (sera chargé depuis le CDN)
-let firebaseApp = null;
-let firebaseDatabase = null;
-let isFirebaseInitialized = false;
 
-// Fonction pour initialiser Firebase
-async function initFirebase() {
-    if (isFirebaseInitialized && firebaseDatabase) {
-        return firebaseDatabase;
+
+const AUTH_STORAGE_KEY = 'admin_auth';
+
+function simpleHash(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
     }
-    
-    // Vérifier si Firebase est chargé
-    if (typeof firebase === 'undefined') {
-        throw new Error('Firebase SDK non chargé. Veuillez inclure le script Firebase dans votre page.');
-    }
-    
-    // Vérifier la configuration
-    if (!window.FIREBASE_CONFIG || !window.FIREBASE_CONFIG.databaseURL) {
-        throw new Error('Configuration Firebase non trouvée. Veuillez configurer firebase-config.js');
-    }
-    
+    return hash.toString();
+}
+
+function createAuthHash(username, password) {
+    return simpleHash(username + ':' + password);
+}
+
+async function setupCredentials(username, password) {
     try {
-        // Initialiser Firebase
-        if (!firebaseApp) {
-            firebaseApp = firebase.initializeApp(window.FIREBASE_CONFIG);
-        }
-        
-        // Obtenir la référence à la base de données
-        firebaseDatabase = firebase.database();
-        isFirebaseInitialized = true;
-        
-        return firebaseDatabase;
-    } catch (error) {
-        console.error('Erreur lors de l\'initialisation de Firebase:', error);
-        throw error;
-    }
-}
-
-// Fonction pour charger toutes les données depuis Firebase
-async function loadDataFromFirebase() {
-    try {
-        const db = await initFirebase();
-        const snapshot = await db.ref('appData').once('value');
-        const data = snapshot.val();
-        
-        // Si pas de données, initialiser avec des valeurs par défaut
-        if (!data) {
-            const defaultData = {
-                links: [],
-                socialLinks: { discord: '', x: '' },
-                adminCredentials: null,
-                statistics: {
-                    clicks: [],
-                    visits: [],
-                    dailyVisits: {}
-                },
-                adminMessages: [] // Messages à afficher aux visiteurs
-            };
-            await saveDataToFirebase(defaultData);
-            return defaultData;
-        }
-        
-        return data;
-    } catch (error) {
-        console.error('Erreur lors du chargement des données Firebase:', error);
-        throw error;
-    }
-}
-
-// Fonction pour sauvegarder toutes les données sur Firebase
-async function saveDataToFirebase(data) {
-    try {
-        console.log('🔥 Firebase - Début de la sauvegarde');
-        console.log('🔥 Firebase - setupPageEnabled:', data.setupPageEnabled);
-        
-        const db = await initFirebase();
-        console.log('🔥 Firebase - Connexion établie, envoi des données...');
-        
-        await db.ref('appData').set(data);
-        
-        console.log('✅ Firebase - Données sauvegardées avec succès');
-        console.log('✅ Firebase - setupPageEnabled sauvegardé:', data.setupPageEnabled);
-        
-        return true;
-    } catch (error) {
-        console.error('❌ Firebase - Erreur lors de la sauvegarde:', error);
-        throw error;
-    }
-}
-
-// Fonction pour écouter les nouvelles visites en temps réel
-function listenToNewVisits(callback) {
-    initFirebase().then(db => {
-        // Écouter les nouvelles visites
-        db.ref('appData/statistics/visits').limitToLast(1).on('child_added', (snapshot) => {
-            const visit = snapshot.val();
-            if (visit && callback) {
-                callback(visit);
-            }
-        });
-    }).catch(error => {
-        console.error('Erreur lors de l\'écoute des visites:', error);
-    });
-}
-
-// Fonction pour écouter les nouveaux messages admin
-function listenToAdminMessages(callback) {
-    initFirebase().then(db => {
-        db.ref('appData/adminMessages').on('value', (snapshot) => {
-            const messages = snapshot.val() || [];
-            if (callback) {
-                callback(messages);
-            }
-        });
-    }).catch(error => {
-        console.error('Erreur lors de l\'écoute des messages:', error);
-    });
-}
-
-// Fonction pour ajouter un message admin
-async function addAdminMessage(message) {
-    try {
-        const data = await loadDataFromFirebase();
-        data.adminMessages = data.adminMessages || [];
-        
-        const newMessage = {
-            id: Date.now().toString(),
-            text: message.text,
-            type: message.type || 'info', // info, warning, success, error
-            timestamp: new Date().toISOString(),
-            active: message.active !== false
+        const authHash = createAuthHash(username, password);
+        const credentials = {
+            username: username,
+            hash: authHash
         };
-        
-        data.adminMessages.push(newMessage);
-        
-        // Garder seulement les 50 derniers messages
-        if (data.adminMessages.length > 50) {
-            data.adminMessages = data.adminMessages.slice(-50);
+
+        if (typeof saveAdminCredentials === 'function') {
+            await saveAdminCredentials(credentials);
+        } else {
+
+            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(credentials));
         }
         
-        await saveDataToFirebase(data);
-        return newMessage;
-    } catch (error) {
-        console.error('Erreur lors de l\'ajout du message:', error);
-        throw error;
-    }
-}
-
-// Fonction pour supprimer un message admin
-async function deleteAdminMessage(messageId) {
-    try {
-        const data = await loadDataFromFirebase();
-        data.adminMessages = data.adminMessages || [];
-        data.adminMessages = data.adminMessages.filter(msg => msg.id !== messageId);
-        await saveDataToFirebase(data);
         return true;
     } catch (error) {
-        console.error('Erreur lors de la suppression du message:', error);
-        throw error;
+        console.error('Erreur lors de la création des identifiants:', error);
+
+        try {
+            const authHash = createAuthHash(username, password);
+            localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify({
+                username: username,
+                hash: authHash
+            }));
+            return true;
+        } catch (e) {
+            return false;
+        }
     }
 }
 
-// Exposer les fonctions globalement
-window.initFirebase = initFirebase;
-window.loadDataFromFirebase = loadDataFromFirebase;
-window.saveDataToFirebase = saveDataToFirebase;
-window.listenToNewVisits = listenToNewVisits;
-window.listenToAdminMessages = listenToAdminMessages;
-window.addAdminMessage = addAdminMessage;
-window.deleteAdminMessage = deleteAdminMessage;
+async function credentialsExist() {
+    console.log('🔍 credentialsExist - Vérification des identifiants...');
+    
+    if (typeof getAdminCredentials === 'function') {
+        try {
+            const credentials = await getAdminCredentials();
+            console.log('📊 credentialsExist - Credentials chargés:', credentials ? 'Oui' : 'Non');
+            
+            // Vérifier les deux formats possibles (hash ou password)
+            if (credentials && credentials.username && (credentials.hash || credentials.password)) {
+                console.log('✅ credentialsExist - Identifiants trouvés dans la BDD');
+                return true;
+            } else {
+                console.log('⚠️ credentialsExist - Format invalide ou incomplet');
+            }
+        } catch (error) {
+            console.warn('⚠️ Erreur lors de la vérification dans la BDD, fallback sur localStorage:', error);
+        }
+    }
 
+    const localAuth = localStorage.getItem(AUTH_STORAGE_KEY);
+    if (localAuth) {
+        console.log('✅ credentialsExist - Identifiants trouvés dans localStorage');
+        return true;
+    }
+    
+    console.log('❌ credentialsExist - Aucun identifiant trouvé');
+    return false;
+}
+
+async function checkCredentials(username, password) {
+    console.log('🔐 checkCredentials - Vérification des identifiants pour:', username);
+    
+    let storedAuth = null;
+
+    if (typeof getAdminCredentials === 'function') {
+        try {
+            console.log('📡 Chargement depuis la BDD...');
+            storedAuth = await getAdminCredentials();
+            console.log('📊 Identifiants chargés depuis la BDD:', storedAuth ? 'Oui' : 'Non');
+        } catch (error) {
+            console.warn('⚠️ Erreur lors du chargement depuis la BDD, fallback sur localStorage:', error);
+        }
+    }
+
+    if (!storedAuth) {
+        console.log('📡 Tentative de chargement depuis localStorage...');
+        const localAuth = localStorage.getItem(AUTH_STORAGE_KEY);
+        if (localAuth) {
+            try {
+                storedAuth = JSON.parse(localAuth);
+                console.log('✅ Identifiants trouvés dans localStorage');
+
+                if (storedAuth && typeof saveAdminCredentials === 'function') {
+                    try {
+                        await saveAdminCredentials(storedAuth);
+                        console.log('✅ Identifiants migrés vers la BDD');
+                    } catch (e) {
+                        console.warn('⚠️ Impossible de migrer vers la BDD:', e);
+                    }
+                }
+            } catch (e) {
+                console.error('❌ Erreur lors du parsing localStorage:', e);
+            }
+        }
+    }
+    
+    if (!storedAuth) {
+        console.log('❌ checkCredentials - Aucun identifiant trouvé');
+        return false;
+    }
+    
+    console.log('📊 checkCredentials - Format identifiants:', storedAuth.hash ? 'hash (ancien)' : storedAuth.password ? 'password (nouveau)' : 'inconnu');
+    
+    try {
+        // Vérifier les deux formats possibles
+        if (storedAuth.hash) {
+            // Format ancien (auth.js) - utilise createAuthHash
+            const providedHash = createAuthHash(username, password);
+            const isValid = storedAuth.username === username && storedAuth.hash === providedHash;
+            console.log('🔐 checkCredentials - Vérification avec hash (createAuthHash):', isValid ? '✅ VALIDE' : '❌ INVALIDE');
+            return isValid;
+        } else if (storedAuth.password) {
+            // Format nouveau (common.js) - utilise hashPassword (SHA-256)
+            if (typeof window.hashPassword === 'function') {
+                const providedHash = await window.hashPassword(password);
+                const isValid = storedAuth.username === username && storedAuth.password === providedHash;
+                console.log('🔐 checkCredentials - Vérification avec password (SHA-256):', isValid ? '✅ VALIDE' : '❌ INVALIDE');
+                return isValid;
+            } else {
+                // Fallback sur createAuthHash si hashPassword n'est pas disponible
+                console.warn('⚠️ hashPassword non disponible, utilisation de createAuthHash');
+                const providedHash = createAuthHash(username, password);
+                const isValid = storedAuth.username === username && storedAuth.password === providedHash;
+                console.log('🔐 checkCredentials - Vérification avec password (fallback):', isValid ? '✅ VALIDE' : '❌ INVALIDE');
+                return isValid;
+            }
+        } else {
+            console.error('❌ checkCredentials - Format d\'identifiants inconnu (ni hash ni password)');
+            return false;
+        }
+    } catch (error) {
+        console.error('❌ Erreur lors de la vérification:', error);
+        return false;
+    }
+}
+
+function promptCredentials() {
+
+    const username = window.prompt('Nom d\'utilisateur:');
+    if (username === null) {
+        return null; // L'utilisateur a annulé
+    }
+
+    const password = window.prompt('Mot de passe:');
+    if (password === null) {
+        return null; // L'utilisateur a annulé
+    }
+    
+    return { username: username.trim(), password: password };
+}
+
+function isAuthenticated() {
+    const session = localStorage.getItem('admin_session');
+    return session === 'authenticated';
+}
+
+function setAuthenticated() {
+    localStorage.setItem('admin_session', 'authenticated');
+}
+
+function logout() {
+    localStorage.removeItem('admin_session');
+}
+
+async function requireAuth() {
+
+    const exist = await credentialsExist();
+    if (!exist) {
+        alert('Aucun identifiant configuré. Redirection vers la page de configuration...');
+        window.location.href = 'setup.html';
+        return false;
+    }
+    
+    if (isAuthenticated()) {
+
+        const container = document.querySelector('.app-container');
+        const loadingMsg = document.getElementById('loadingMessage');
+        if (container) {
+            container.style.display = 'block';
+        }
+        if (loadingMsg) {
+            loadingMsg.style.display = 'none';
+        }
+
+        if (typeof window.hideLoadingMessage === 'function') {
+            window.hideLoadingMessage();
+        }
+        return true;
+    }
+
+    const container = document.querySelector('.app-container');
+    if (container) {
+        container.style.display = 'none';
+    }
+
+    let attempts = 0;
+    const maxAttempts = 3;
+    
+    while (attempts < maxAttempts) {
+        const credentials = promptCredentials();
+        
+        if (credentials === null) {
+
+            window.location.href = 'index.html';
+            return false;
+        }
+        
+        const isValid = await checkCredentials(credentials.username, credentials.password);
+        if (isValid) {
+            setAuthenticated();
+
+            const appContainer = document.querySelector('.app-container');
+            const loadingMsg = document.getElementById('loadingMessage');
+            if (appContainer) {
+                appContainer.style.display = 'block';
+            }
+            if (loadingMsg) {
+                loadingMsg.style.display = 'none';
+            }
+
+            if (typeof window.hideLoadingMessage === 'function') {
+                window.hideLoadingMessage();
+            }
+            return true;
+        } else {
+            attempts++;
+            if (attempts < maxAttempts) {
+                alert('Nom d\'utilisateur ou mot de passe incorrect. Tentatives restantes: ' + (maxAttempts - attempts));
+            } else {
+                alert('Nombre maximum de tentatives atteint. Accès refusé.');
+                window.location.href = 'index.html';
+                return false;
+            }
+        }
+    }
+    
+    return false;
+}
