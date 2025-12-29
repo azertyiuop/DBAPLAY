@@ -1,3 +1,6 @@
+// Déchiffreur de fichiers JavaScript chiffrés
+// La clé est reconstituée dynamiquement pour éviter qu'elle soit visible en clair
+
 const ENCRYPTED_DIR = 'encrypted'; // Dossier contenant les fichiers chiffrés
 
 // Clé de chiffrement obscurcie (divisée en plusieurs parties)
