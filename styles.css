@@ -3672,7 +3672,6 @@ body {
 }
 
 .social-btn-icon-new {
-    font-size: 2.5rem;
     width: 56px;
     height: 56px;
     display: flex;
@@ -3680,6 +3679,13 @@ body {
     justify-content: center;
     background: var(--gradient-primary);
     border-radius: 14px;
+    color: white;
+}
+
+.social-btn-icon-new svg {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
 }
 
 .social-btn-content-new {
